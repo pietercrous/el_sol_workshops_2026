@@ -1,8 +1,8 @@
 const CACHE_NAME = 'elsol-schedule-v1';
 const ASSETS = [
   './',
-  './index.html',
-  './manifest.json',
+  'index.html',
+  'manifest.json',
   'https://cdn.tailwindcss.com',
   'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js'
 ];
