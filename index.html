@@ -5,6 +5,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>El Sol Festival Schedule</title>
+
+  <!-- PWA Meta Tags & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#D63384">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="elSol Schedule">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -169,7 +179,7 @@
 
           <div class="pt-3 border-t border-gray-100 dark:border-gray-800/80 flex flex-col gap-2.5">
 
-            <!-- Badges: Style & Difficulty (with SVGs and display_name) -->
+            <!-- Badges: Style & Difficulty -->
             <div class="flex items-center justify-between text-xs">
               <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium"
                 :style="`background-color: ${getStyleBadgeBg(item.Style)}; color: ${getStyleBadgeText(item.Style)}`"
@@ -181,7 +191,6 @@
                 :style="`background-color: ${getDifficultyMeta(item.Difficulty).color};
                   color: oklch(from ${getDifficultyMeta(item.Difficulty).color} calc(l - 0.35) c h);
                   `">
-                <!-- Multiplier SVGs -->
                 <div class="flex items-center gap-0.5 py-0.5">
                   <template x-for="n in getDifficultyMeta(item.Difficulty).multiplier" :key="n">
                     <svg class="icon" width="16" height="16">
@@ -192,13 +201,14 @@
               </div>
             </div>
 
-            <!-- Interest Selection: Dropdown OR Pill Badge -->
+            <!-- Interest Selection -->
             <div class="pt-1 text-xs" @click.stop>
               <!-- Show Dropdown if no interest selected -->
-              <template x-if="!userData[item.id] || !userData[item.id].interest">
+              <template x-if="!getItemUserData(item.id).interest">
                 <div>
                   <label class="block text-[10px] text-gray-400 mb-1">Interest Level</label>
-                  <select x-model="userData[item.id].interest" @change="saveUserData()"
+                  <select :value="getItemUserData(item.id).interest"
+                    @change="updateUserInterest(item.id, $event.target.value)"
                     class="w-full text-xs rounded bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1.5 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-pink-500">
                     <option value="">Select Interest...</option>
                     <template x-for="level in interestDefinitions" :key="level.id">
@@ -209,12 +219,12 @@
               </template>
 
               <!-- Show Pill if interest selected -->
-              <template x-if="userData[item.id] && userData[item.id].interest">
+              <template x-if="getItemUserData(item.id).interest">
                 <div class="flex items-center justify-between gap-2">
                   <span
                     class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white shadow-xs"
-                    :style="`background-color: ${getInterestHex(userData[item.id].interest)}`">
-                    <span x-text="getInterestName(userData[item.id].interest)"></span>
+                    :style="`background-color: ${getInterestHex(getItemUserData(item.id).interest)}`">
+                    <span x-text="getInterestName(getItemUserData(item.id).interest)"></span>
                   </span>
 
                   <button @click.stop="openModal(item)"
@@ -226,9 +236,9 @@
             </div>
 
             <!-- Notes Snippet if present -->
-            <template x-if="userData[item.id] && userData[item.id].notes">
+            <template x-if="getItemUserData(item.id).notes">
               <p class="text-[11px] text-gray-500 dark:text-gray-400 italic truncate pt-1"
-                x-text="'💬 ' + userData[item.id].notes"></p>
+                x-text="'💬 ' + getItemUserData(item.id).notes"></p>
             </template>
 
           </div>
@@ -242,7 +252,7 @@
     </div>
   </main>
 
-  <!-- Interactive Modal for Rating & Notes -->
+  <!-- Modal for Rating & Notes -->
   <div x-show="modalOpen" x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
@@ -250,7 +260,6 @@
     x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
     <div @click.outside="closeModal()"
       class="bg-white dark:bg-[#1E1E1E] rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-200 dark:border-gray-800 space-y-5 relative">
-      <!-- Close Button -->
       <button @click="closeModal()"
         class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold p-1">&times;</button>
 
@@ -273,7 +282,6 @@
             <span class="px-2.5 py-0.5 rounded-full text-xs font-medium"
               :style="`background-color: ${getStyleBadgeBg(activeItem.Style)}; color: ${getStyleBadgeText(activeItem.Style)}`"
               x-text="activeItem.Style"></span>
-            <!-- Modal Difficulty Badge -->
             <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium" :style="`
                   background-color: ${getDifficultyMeta(activeItem.Difficulty).color}; 
                   color: oklch(from ${getDifficultyMeta(activeItem.Difficulty).color} calc(l - 0.35) c h);
@@ -295,9 +303,9 @@
           <div class="space-y-4 pt-2">
             <!-- Interest Level -->
             <div>
-              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Interest Level (How
-                keen are you?)</label>
-              <select x-model="userData[activeItem.id].interest" @change="saveUserData()"
+              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Interest Level</label>
+              <select :value="getItemUserData(activeItem.id).interest"
+                @change="updateUserInterest(activeItem.id, $event.target.value)"
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
                 <option value="">None (Unselected)</option>
                 <template x-for="level in interestDefinitions" :key="level.id">
@@ -308,9 +316,9 @@
 
             <!-- Experience Rating -->
             <div>
-              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Experience Rating (How
-                was the workshop?)</label>
-              <select x-model="userData[activeItem.id].rating" @change="saveUserData()"
+              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Experience Rating</label>
+              <select :value="getItemUserData(activeItem.id).rating"
+                @change="updateUserRating(activeItem.id, $event.target.value)"
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
                 <option value="">Unrated</option>
                 <template x-for="exp in experienceDefinitions" :key="exp.id">
@@ -322,7 +330,8 @@
             <!-- Personal Notes -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Personal Notes</label>
-              <textarea x-model="userData[activeItem.id].notes" @input.debounce.300ms="saveUserData()" rows="3"
+              <textarea :value="getItemUserData(activeItem.id).notes"
+                @input.debounce.300ms="updateUserNotes(activeItem.id, $event.target.value)" rows="3"
                 placeholder="Add takeaways, moves learned, or comments..."
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-pink-500"></textarea>
             </div>
@@ -340,6 +349,13 @@
   </div>
 
   <script>
+    // Register Service Worker for PWA Android Installation
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('Service Worker reg failed:', err));
+      });
+    }
+
     function appData() {
       return {
         darkMode: localStorage.getItem('darkMode') === 'true',
@@ -371,45 +387,76 @@
           { id: '5', name: '5 - Mindblowing', hex: '#0D6EFD' }
         ],
 
-        // Default difficulty & location definitions dynamically populated/updated from Google Sheets
         difficultyDefinitions: {},
         locationDefinitions: {},
 
         schedule: [],
-        userData: JSON.parse(localStorage.getItem('elSol_userData') || '{}'),
+        userData: {},
 
-        // Google Sheet Key for JSONP gviz request
         sheetKey: '1L7pRkX-guI1Ka30VcUjIYgE8pu8bhQFm4btvUi2athg',
 
+        loadUserDataFromStorage() {
+          try {
+            const raw = localStorage.getItem('elSol_userData');
+            this.userData = raw ? JSON.parse(raw) : {};
+          } catch (e) {
+            console.error('Failed to parse userData:', e);
+            this.userData = {};
+          }
+        },
+
+        getItemUserData(id) {
+          const key = String(id);
+          if (!this.userData[key]) {
+            this.userData[key] = { interest: '', rating: '', notes: '' };
+          }
+          return this.userData[key];
+        },
+
+        saveUserData() {
+          localStorage.setItem('elSol_userData', JSON.stringify(this.userData));
+        },
+
+        updateUserInterest(id, val) {
+          const itemData = this.getItemUserData(id);
+          itemData.interest = String(val || '');
+          this.userData = { ...this.userData };
+          this.saveUserData();
+        },
+
+        updateUserRating(id, val) {
+          const itemData = this.getItemUserData(id);
+          itemData.rating = String(val || '');
+          this.userData = { ...this.userData };
+          this.saveUserData();
+        },
+
+        updateUserNotes(id, val) {
+          const itemData = this.getItemUserData(id);
+          itemData.notes = String(val || '');
+          this.userData = { ...this.userData };
+          this.saveUserData();
+        },
+
         async init() {
+          this.loadUserDataFromStorage();
+
           const storedSched = localStorage.getItem('elSol_schedule');
           const storedDiff = localStorage.getItem('elSol_def_difficulty');
           const storedLoc = localStorage.getItem('elSol_def_location');
           const storedInterest = localStorage.getItem('elSol_def_interest_level');
           const storedExp = localStorage.getItem('elSol_def_experience_level');
 
-          if (storedInterest) {
-            this.interestDefinitions = JSON.parse(storedInterest);
-          }
-
-          if (storedExp) {
-            this.experienceDefinitions = JSON.parse(storedExp);
-          }
-
-          if (storedDiff) {
-            this.difficultyDefinitions = JSON.parse(storedDiff);
-          }
-
-          if (storedLoc) {
-            this.locationDefinitions = JSON.parse(storedLoc);
-          }
+          if (storedInterest) this.interestDefinitions = JSON.parse(storedInterest);
+          if (storedExp) this.experienceDefinitions = JSON.parse(storedExp);
+          if (storedDiff) this.difficultyDefinitions = JSON.parse(storedDiff);
+          if (storedLoc) this.locationDefinitions = JSON.parse(storedLoc);
 
           if (storedSched) {
             this.schedule = JSON.parse(storedSched);
             this.ensureUserDataStructure();
           }
 
-          // Automatically sync schedule, def_difficulty, and def_location from Google Sheets
           await this.fetchSchedule();
         },
 
@@ -422,7 +469,7 @@
             this.fetchSheetData('def_experience_level'),
             this.fetchSheetData('schedule')
           ]).then(([diffRows, locRows, interestRows, expRows, schedRows]) => {
-            // Process def_difficulty
+
             if (diffRows && diffRows.length > 0) {
               const diffMap = {};
               diffRows.forEach(r => {
@@ -440,13 +487,10 @@
               localStorage.setItem('elSol_def_difficulty', JSON.stringify(diffMap));
             }
 
-            // Process def_location
-            // console.log('Fetched location rows:', locRows);
             if (locRows && locRows.length > 0) {
               const locMap = {};
               locRows.forEach(r => {
                 const id = String(r.Location || r.location || r.id || r.name || r.display_name || r.A || '').trim();
-                // console.log('Processing location row:', r, '-> id:', id);
                 if (id) {
                   locMap[id] = {
                     id: id,
@@ -458,11 +502,9 @@
                 }
               });
               this.locationDefinitions = locMap;
-              // console.log('Updated location definitions:', locMap);
               localStorage.setItem('elSol_def_location', JSON.stringify(locMap));
             }
 
-            // Process def_interest_level
             if (interestRows && interestRows.length > 0) {
               const interestList = interestRows.map(r => {
                 const id = String(r.interest_level_id || r.id || r.level_id || r.A || '').trim();
@@ -477,7 +519,6 @@
               }
             }
 
-            // Process def_experience_level
             if (expRows && expRows.length > 0) {
               const expList = expRows.map(r => {
                 const id = String(r.experience_level_id || r.id || r.level_id || r.A || '').trim();
@@ -492,10 +533,9 @@
               }
             }
 
-            // Process schedule
             if (schedRows && schedRows.length > 0) {
               this.schedule = schedRows.map((row, idx) => ({
-                id: row.id || (idx + 1),
+                id: String(row.id || (idx + 1)),
                 Date: String(row.Date || '13.11').trim(),
                 Time: String(row.Time || '').trim(),
                 Style: String(row.Style || 'Salsa').trim(),
@@ -557,70 +597,46 @@
         },
 
         getDifficultyMeta(diffRaw) {
-          if (!diffRaw) {
-            return { name: 'Public', multiplier: 0, color: '#edf1f5' }; //color: '#28A745'
-          }
-
+          if (!diffRaw) return { name: 'Public', multiplier: 0, color: '#edf1f5' };
           const rawKey = String(diffRaw).trim();
+          if (this.difficultyDefinitions[rawKey]) return this.difficultyDefinitions[rawKey];
 
-          // Direct lookup in def_difficulty map
-          if (this.difficultyDefinitions[rawKey]) {
-            return this.difficultyDefinitions[rawKey];
-          }
-
-          // Case-insensitive / partial match fallback
           const lowerKey = rawKey.toLowerCase();
           for (const key in this.difficultyDefinitions) {
             const item = this.difficultyDefinitions[key];
-            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) {
-              return item;
-            }
+            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) return item;
           }
-
-          return { name: rawKey, multiplier: 0, color: '#edf1f5' }; //color: '#6C757D'
+          return { name: rawKey, multiplier: 0, color: '#edf1f5' };
         },
 
         getLocationMeta(locRaw) {
-          if (!locRaw) {
-            return { name: 'FOYER', colour_hex: '', class_text_light: 'text-gray-700 bg-gray-100', class_text_dark: 'text-gray-300 bg-gray-800' };
-          }
-
+          if (!locRaw) return { name: 'FOYER', colour_hex: '', class_text_light: 'text-gray-700 bg-gray-100', class_text_dark: 'text-gray-300 bg-gray-800' };
           const rawKey = String(locRaw).trim();
+          if (this.locationDefinitions[rawKey]) return this.locationDefinitions[rawKey];
 
-          // Direct lookup in def_location map
-          if (this.locationDefinitions[rawKey]) {
-            return this.locationDefinitions[rawKey];
-          }
-
-          // Case-insensitive / partial match fallback
           const lowerKey = rawKey.toLowerCase();
           for (const key in this.locationDefinitions) {
             const item = this.locationDefinitions[key];
-            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) {
-              return item;
-            }
+            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) return item;
           }
-
           return { name: rawKey, colour_hex: '', class_text_light: 'text-gray-700 bg-gray-100', class_text_dark: 'text-gray-300 bg-gray-800' };
         },
 
         ensureUserDataStructure() {
+          let updated = false;
           this.schedule.forEach(item => {
-            if (!this.userData[item.id]) {
-              this.userData[item.id] = { interest: '', rating: '', notes: '' };
+            const key = String(item.id);
+            if (!this.userData[key]) {
+              this.userData[key] = { interest: '', rating: '', notes: '' };
+              updated = true;
             }
           });
-        },
-
-        saveUserData() {
-          localStorage.setItem('elSol_userData', JSON.stringify(this.userData));
+          if (updated) this.saveUserData();
         },
 
         openModal(item) {
           this.activeItem = item;
-          if (!this.userData[item.id]) {
-            this.userData[item.id] = { interest: '', rating: '', notes: '' };
-          }
+          this.getItemUserData(item.id);
           this.modalOpen = true;
         },
 
@@ -632,9 +648,7 @@
         get alphabeticalFacilitators() {
           const names = new Set();
           this.schedule.forEach(s => {
-            if (s.Facilitator && s.Facilitator.trim() !== '') {
-              names.add(s.Facilitator.trim());
-            }
+            if (s.Facilitator && s.Facilitator.trim() !== '') names.add(s.Facilitator.trim());
           });
           return Array.from(names).sort((a, b) => a.localeCompare(b));
         },
@@ -645,7 +659,8 @@
             const matchesStyle = this.selectedStyle === 'All' || item.Style === this.selectedStyle;
             const matchesFacilitator = this.selectedFacilitator === 'All' || item.Facilitator === this.selectedFacilitator;
 
-            const userInterest = this.userData[item.id] ? String(this.userData[item.id].interest) : '';
+            const uData = this.getItemUserData(item.id);
+            const userInterest = String(uData.interest || '');
             let matchesInterest = true;
 
             if (this.selectedInterestFilter === 'Unselected') {
@@ -663,17 +678,17 @@
         },
 
         getInterestHex(interestId) {
-          const match = this.interestDefinitions.find(i => i.id === String(interestId));
+          const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
           return match ? match.hex : '#6C757D';
         },
 
         getInterestName(interestId) {
-          const match = this.interestDefinitions.find(i => i.id === String(interestId));
+          const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
           return match ? match.name : 'Selected';
         },
 
         getCardBorderStyle(itemId) {
-          const userRec = this.userData[itemId];
+          const userRec = this.getItemUserData(itemId);
           if (userRec && userRec.interest) {
             const hex = this.getInterestHex(userRec.interest);
             return `border-color: ${hex};`;
