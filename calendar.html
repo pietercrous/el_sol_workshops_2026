@@ -268,7 +268,6 @@
                     `">
                     
                     <div class="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                      <span class="font-bold text-pink-600 dark:text-pink-400" x-text="formatTimeDisplay(eObj.item)"></span>
                       <span class="uppercase px-1.5 py-0.5 rounded text-[9px] font-bold tracking-tight truncate max-w-[80px]"
                         :class="darkMode ? getLocationMeta(eObj.item.Location).class_text_dark : getLocationMeta(eObj.item.Location).class_text_light"
                         :style="`background-color: ${getLocationMeta(eObj.item.Location).colour_hex || 'transparent'}`"
