@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en" x-data="appData()" :class="{ 'dark': darkMode }">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Sol Festival - 24-Hour Calendar View</title>
+
+  <!-- PWA Meta Tags & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#D63384">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="elSol Calendar">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              pink: '#D63384',
+              orange: '#FD7E14',
+              blue: '#0D6EFD',
+              darkBg: '#121212',
+              darkCard: '#1E1E1E'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+  </style>
+
+  <svg style="display: None;">
+    <defs>
+      <symbol id="icon-ghost" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="icon icon-tabler icons-tabler-outline icon-tabler-ghost">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path
+          d="M5 11a7 7 0 0 1 14 0v7a1.78 1.78 0 0 1 -3.1 1.4a1.65 1.65 0 0 0 -2.6 0a1.65 1.65 0 0 1 -2.6 0a1.65 1.65 0 0 0 -2.6 0a1.78 1.78 0 0 1 -3.1 -1.4v-7" />
+        <path d="M10 10l.01 0" />
+        <path d="M14 10l.01 0" />
+        <path d="M10 14a3.5 3.5 0 0 0 4 0" />
+      </symbol>
+    </defs>
+  </svg>
+</head>
+
+<body
+  class="bg-gray-50 text-gray-800 dark:bg-[#121212] dark:text-gray-200 min-h-screen transition-colors duration-200 font-sans">
+
+  <!-- Header -->
+  <header
+    class="sticky top-0 z-30 bg-white/80 dark:bg-[#181818]/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <span class="text-pink-600">elSol</span> Calendar
+        </h1>
+        <a href="index.html" class="text-xs px-3 py-1 rounded-lg bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 font-medium hover:bg-pink-200 transition">
+          &larr; Switch to Grid View
+        </a>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button @click="fetchSchedule()" :disabled="loading"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-pink-600 hover:bg-pink-700 text-white transition shadow-sm">
+          <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.035 8.035 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <svg x-show="loading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span x-text="loading ? 'Syncing...' : 'Sync Schedule'"></span>
+        </button>
+
+        <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
+          class="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+          <span x-text="darkMode ? '☀️ Light' : '🌙 Dark'"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Accordion Filter Controls Bar -->
+    <section class="mb-6 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      
+      <!-- Accordion Header Bar -->
+      <div @click="filtersOpen = !filtersOpen"
+        class="w-full px-4 py-3 bg-gray-50/80 dark:bg-gray-800/60 flex items-center justify-between cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <span class="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">Calendar Filters</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 font-semibold"
+            x-text="activeFilterCount + ' Active'"></span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button @click.stop="resetFilters()" x-show="activeFilterCount > 0"
+            class="text-[11px] text-pink-600 dark:text-pink-400 hover:underline font-medium">
+            Reset Filters
+          </button>
+          <span class="text-gray-400 text-xs transition-transform duration-200" :class="filtersOpen ? 'rotate-180' : ''">&#9660;</span>
+        </div>
+      </div>
+
+      <!-- Accordion Body -->
+      <div x-show="filtersOpen" x-collapse x-cloak class="p-4 space-y-4 border-t border-gray-200 dark:border-gray-800">
+        
+        <!-- Date Filter Tabs -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Festival Day</label>
+          <div class="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg text-xs font-medium w-fit">
+            <button @click="selectedDate = 'All'"
+              :class="selectedDate === 'All' ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+              class="px-3 py-1.5 rounded-md transition">All Days</button>
+            <template x-for="date in availableDates" :key="date">
+              <button @click="selectedDate = date"
+                :class="selectedDate === date ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+                class="px-3 py-1.5 rounded-md transition" x-text="formatDateFormatted(date)"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Dance Style Chips -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dance Style</label>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button @click="selectedStyle = 'All'"
+              :class="selectedStyle === 'All' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
+              class="px-3 py-1 text-xs rounded-full transition">All Styles</button>
+            <template x-for="style in styles" :key="style">
+              <button @click="selectedStyle = style"
+                :class="selectedStyle === style ? 'ring-2 ring-pink-500 font-bold' : ''"
+                :style="`background-color: ${getStyleBadgeBg(style)}; color: ${getStyleBadgeText(style)}`"
+                class="px-3 py-1 text-xs rounded-full transition" x-text="style"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Artist / Instructor & Multi-select Interest/Ratings -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <!-- Artist / Facilitator Select -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Artist / Instructor</label>
+            <select x-model="selectedFacilitator"
+              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
+              <option value="All">All Artists (A-Z)</option>
+              <template x-for="fac in alphabeticalFacilitators" :key="fac">
+                <option :value="fac" x-text="fac"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- Multi-select Interest Levels -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Filter by Interest Levels</label>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <template x-for="lvl in interestDefinitions" :key="lvl.id">
+                <button @click="toggleInterestFilter(lvl.id)"
+                  :class="selectedInterestLevels.includes(String(lvl.id)) ? 'ring-2 ring-offset-1 ring-pink-500 font-bold scale-105' : 'opacity-70 hover:opacity-100'"
+                  :style="`background-color: ${lvl.hex}; color: #ffffff;`"
+                  class="px-2.5 py-1 rounded-full text-xs transition shadow-2xs flex items-center gap-1">
+                  <span x-text="selectedInterestLevels.includes(String(lvl.id)) ? '✓' : '+'"></span>
+                  <span x-text="lvl.name"></span>
+                </button>
+              </template>
+              <button @click="selectedInterestLevels = []" x-show="selectedInterestLevels.length > 0"
+                class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1">Clear</button>
+            </div>
+          </div>
+
+          <!-- Multi-select Experience Ratings -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Filter by Experience Ratings</label>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <template x-for="exp in experienceDefinitions" :key="exp.id">
+                <button @click="toggleExperienceFilter(exp.id)"
+                  :class="selectedExperienceRatings.includes(String(exp.id)) ? 'ring-2 ring-offset-1 ring-pink-500 font-bold scale-105' : 'opacity-70 hover:opacity-100'"
+                  :style="`background-color: ${exp.hex}; color: #ffffff;`"
+                  class="px-2.5 py-1 rounded-full text-xs transition shadow-2xs flex items-center gap-1">
+                  <span x-text="selectedExperienceRatings.includes(String(exp.id)) ? '✓' : '+'"></span>
+                  <span x-text="exp.name"></span>
+                </button>
+              </template>
+              <button @click="selectedExperienceRatings = []" x-show="selectedExperienceRatings.length > 0"
+                class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1">Clear</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 24-Hour Vertical Calendar Layout (11:00 to 23:00, Height per Hour = 90px) -->
+    <div class="bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      
+      <!-- Date Column Headers -->
+      <div class="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/80 sticky top-[57px] z-20">
+        <!-- Time Column Header Spacer -->
+        <div class="w-16 sm:w-20 shrink-0 border-r border-gray-200 dark:border-gray-800 p-3 text-center text-xs font-semibold text-gray-400">
+          Time
+        </div>
+        <!-- Day Columns Header -->
+        <div class="flex-1 grid gap-0" :class="gridColClass">
+          <template x-for="dateKey in displayedDates" :key="dateKey">
+            <div class="p-3 text-center border-r border-gray-200 dark:border-gray-800 last:border-r-0">
+              <span class="block font-bold text-sm text-gray-900 dark:text-white" x-text="formatDateFormatted(dateKey)"></span>
+              <span class="text-[11px] text-gray-500 dark:text-gray-400 font-medium" x-text="getWorkshopsForDate(dateKey).length + ' events'"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Vertical Grid Container (13 Hours from 11:00 to 23:00; Height: 13 * 90px = 1170px) -->
+      <div class="relative overflow-y-auto max-h-[78vh]">
+        <div class="flex relative min-h-[1170px]">
+          
+          <!-- Vertical Time Slot Axis (11:00 to 23:00) -->
+          <div class="w-16 sm:w-20 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 select-none">
+            <template x-for="hIndex in 13" :key="hIndex">
+              <div class="h-[90px] border-b border-gray-100 dark:border-gray-800/60 pr-2 pt-1 text-right text-xs font-bold text-gray-500 dark:text-gray-400">
+                <span x-text="String(hIndex + 10).padStart(2, '0') + ':00'"></span>
+              </div>
+            </template>
+          </div>
+
+          <!-- Day Columns Content Grid -->
+          <div class="flex-1 grid gap-0 relative" :class="gridColClass">
+            <template x-for="dateKey in displayedDates" :key="dateKey">
+              <div class="relative border-r border-gray-200 dark:border-gray-800 last:border-r-0 min-h-[1170px]">
+                
+                <!-- Hour Horizontal Gridlines -->
+                <template x-for="h in 13" :key="h">
+                  <div class="h-[90px] border-b border-gray-100 dark:border-gray-800/40"></div>
+                </template>
+
+                <!-- Workshop Events Rendered Side-by-Side at Exact Vertical Time Slots -->
+                <template x-for="eObj in getWorkshopsForDateWithLayout(dateKey)" :key="eObj.item.id">
+                  <div @click="openModal(eObj.item)"
+                    class="absolute rounded-lg p-2 shadow-xs cursor-pointer overflow-hidden transition-all duration-150 border-l-4 hover:z-30 hover:shadow-md"
+                    :style="`
+                      top: ${eObj.top}px;
+                      height: ${eObj.height}px;
+                      left: calc(${eObj.leftPct}% + 2px);
+                      width: calc(${eObj.widthPct}% - 4px);
+                      border-left-color: ${getInterestHex(getItemUserData(eObj.item.id).interest || '')};
+                      background-color: ${darkMode ? '#262626' : '#FFFFFF'};
+                      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+                    `">
+                    
+                    <div class="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 mb-1">
+                      <span class="font-bold text-pink-600 dark:text-pink-400" x-text="formatTimeDisplay(eObj.item)"></span>
+                      <span class="uppercase px-1.5 py-0.5 rounded text-[9px] font-bold tracking-tight truncate max-w-[80px]"
+                        :class="darkMode ? getLocationMeta(eObj.item.Location).class_text_dark : getLocationMeta(eObj.item.Location).class_text_light"
+                        :style="`background-color: ${getLocationMeta(eObj.item.Location).colour_hex || 'transparent'}`"
+                        x-text="getLocationMeta(eObj.item.Location).name"></span>
+                    </div>
+
+                    <h3 class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white leading-tight mb-0.5" x-text="eObj.item.Name"></h3>
+                    <p class="text-xs text-gray-600 dark:text-gray-300 font-medium truncate mb-1" x-text="eObj.item.Facilitator || '—'"></p>
+
+                    <div class="flex items-center justify-between gap-1 text-[10px] mt-1" x-show="eObj.height >= 50">
+                      <span class="px-2 py-0.5 rounded-full font-semibold"
+                        :style="`background-color: ${getStyleBadgeBg(eObj.item.Style)}; color: ${getStyleBadgeText(eObj.item.Style)}`"
+                        x-text="eObj.item.Style"></span>
+
+                      <div class="flex items-center gap-1">
+                        <template x-if="getItemUserData(eObj.item.id).interest">
+                          <span class="px-2 py-0.5 rounded-full text-white font-bold"
+                            :style="`background-color: ${getInterestHex(getItemUserData(eObj.item.id).interest)}`"
+                            x-text="getInterestName(getItemUserData(eObj.item.id).interest)"></span>
+                        </template>
+                      </div>
+                    </div>
+
+                  </div>
+                </template>
+
+              </div>
+            </template>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal for Editing Workshop Interest & Notes -->
+  <div x-show="modalOpen" x-cloak
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+    x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+    <div @click.outside="closeModal()"
+      class="bg-white dark:bg-[#1E1E1E] rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-200 dark:border-gray-800 space-y-5 relative">
+      <button @click="closeModal()"
+        class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white text-lg font-bold p-1">&times;</button>
+
+      <template x-if="activeItem">
+        <div>
+          <div class="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
+            <span class="font-semibold" x-text="formatTimeDisplay(activeItem)"></span>
+            <span class="uppercase font-medium px-2 py-0.5 rounded text-[10px]"
+              :class="darkMode ? getLocationMeta(activeItem.Location).class_text_dark : getLocationMeta(activeItem.Location).class_text_light"
+              :style="`background-color: ${getLocationMeta(activeItem.Location).colour_hex || 'transparent'}`"
+              x-text="getLocationMeta(activeItem.Location).name"></span>
+          </div>
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white" x-text="activeItem.Name"></h2>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-4"
+            x-text="'Facilitator: ' + (activeItem.Facilitator || 'N/A')"></p>
+
+          <div class="space-y-4 pt-2">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Interest Level</label>
+              <select :value="getItemUserData(activeItem.id).interest"
+                @change="updateUserInterest(activeItem.id, $event.target.value)"
+                class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
+                <option value="">None (Unselected)</option>
+                <template x-for="level in interestDefinitions" :key="level.id">
+                  <option :value="level.id" x-text="level.name"></option>
+                </template>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Experience Rating</label>
+              <select :value="getItemUserData(activeItem.id).rating"
+                @change="updateUserRating(activeItem.id, $event.target.value)"
+                class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
+                <option value="">Unrated</option>
+                <template x-for="exp in experienceDefinitions" :key="exp.id">
+                  <option :value="exp.id" x-text="exp.name"></option>
+                </template>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Personal Notes</label>
+              <textarea :value="getItemUserData(activeItem.id).notes"
+                @input.debounce.300ms="updateUserNotes(activeItem.id, $event.target.value)" rows="3"
+                placeholder="Add takeaways, moves learned, or comments..."
+                class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-pink-500"></textarea>
+            </div>
+          </div>
+
+          <div class="pt-4 flex justify-end">
+            <button @click="closeModal()"
+              class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium text-xs rounded-lg transition shadow-sm">Save & Done</button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW reg failed:', err));
+      });
+    }
+
+    function appData() {
+      return {
+        darkMode: localStorage.getItem('darkMode') === 'true',
+        loading: false,
+        filtersOpen: true,
+        selectedDate: 'All',
+        selectedStyle: 'All',
+        selectedFacilitator: 'All',
+        selectedInterestLevels: [],
+        selectedExperienceRatings: [],
+        modalOpen: false,
+        activeItem: null,
+
+        styles: ['Salsa', 'Cuban', 'Bachata', 'Special'],
+
+        interestDefinitions: [
+          { id: '1', name: '1 - Skip', hex: '#6C757D' },
+          { id: '2', name: '2 - Low', hex: '#6C757D' },
+          { id: '3', name: '3 - Medium', hex: '#17A2B8' },
+          { id: '4', name: '4 - High', hex: '#28A745' },
+          { id: '5', name: '5 - Must Attend', hex: '#D63384' }
+        ],
+
+        experienceDefinitions: [
+          { id: '1', name: '1 - Poor', hex: '#DC3545' },
+          { id: '2', name: '2 - Fair', hex: '#FD7E14' },
+          { id: '3', name: '3 - Good', hex: '#FFC107' },
+          { id: '4', name: '4 - Great', hex: '#28A745' },
+          { id: '5', name: '5 - Mindblowing', hex: '#0D6EFD' }
+        ],
+
+        difficultyDefinitions: {},
+        locationDefinitions: {},
+        schedule: [],
+        userData: {},
+
+        sheetKey: '1L7pRkX-guI1Ka30VcUjIYgE8pu8bhQFm4btvUi2athg',
+
+        get activeFilterCount() {
+          let count = 0;
+          if (this.selectedStyle !== 'All') count++;
+          if (this.selectedFacilitator !== 'All') count++;
+          if (this.selectedInterestLevels.length > 0) count += this.selectedInterestLevels.length;
+          if (this.selectedExperienceRatings.length > 0) count += this.selectedExperienceRatings.length;
+          return count;
+        },
+
+        loadUserDataFromStorage() {
+          try {
+            const raw = localStorage.getItem('elSol_userData');
+            this.userData = raw ? JSON.parse(raw) : {};
+          } catch (e) {
+            this.userData = {};
+          }
+        },
+
+        getItemUserData(id) {
+          const key = String(id);
+          if (!this.userData[key]) {
+            this.userData[key] = { interest: '', rating: '', notes: '' };
+          }
+          return this.userData[key];
+        },
+
+        saveUserData() {
+          localStorage.setItem('elSol_userData', JSON.stringify(this.userData));
+        },
+
+        updateUserInterest(id, val) {
+          const itemData = this.getItemUserData(id);
+          itemData.interest = String(val || '');
+          this.userData = { ...this.userData };
+          this.saveUserData();
+        },
+
+        updateUserRating(id, val) {
+          const itemData = this.getItemUserData(id);
+          itemData.rating = String(val || '');
+          this.userData = { ...this.userData };
+          this.saveUserData();
+        },
+
+        updateUserNotes(id, val) {
+          const itemData = this.getItemUserData(id);
+          itemData.notes = String(val || '');
+          this.userData = { ...this.userData };
+          this.saveUserData();
+        },
+
+        toggleInterestFilter(lvlId) {
+          const key = String(lvlId);
+          if (this.selectedInterestLevels.includes(key)) {
+            this.selectedInterestLevels = this.selectedInterestLevels.filter(k => k !== key);
+          } else {
+            this.selectedInterestLevels.push(key);
+          }
+        },
+
+        toggleExperienceFilter(expId) {
+          const key = String(expId);
+          if (this.selectedExperienceRatings.includes(key)) {
+            this.selectedExperienceRatings = this.selectedExperienceRatings.filter(k => k !== key);
+          } else {
+            this.selectedExperienceRatings.push(key);
+          }
+        },
+
+        resetFilters() {
+          this.selectedDate = 'All';
+          this.selectedStyle = 'All';
+          this.selectedFacilitator = 'All';
+          this.selectedInterestLevels = [];
+          this.selectedExperienceRatings = [];
+        },
+
+        get alphabeticalFacilitators() {
+          const names = new Set();
+          this.schedule.forEach(s => {
+            if (s.Facilitator && s.Facilitator.trim() !== '') {
+              names.add(s.Facilitator.trim());
+            }
+          });
+          return Array.from(names).sort((a, b) => a.localeCompare(b));
+        },
+
+        async init() {
+          this.loadUserDataFromStorage();
+
+          const storedSched = localStorage.getItem('elSol_schedule');
+          const storedDiff = localStorage.getItem('elSol_def_difficulty');
+          const storedLoc = localStorage.getItem('elSol_def_location');
+          const storedInterest = localStorage.getItem('elSol_def_interest_level');
+          const storedExp = localStorage.getItem('elSol_def_experience_level');
+
+          if (storedInterest) this.interestDefinitions = JSON.parse(storedInterest);
+          if (storedExp) this.experienceDefinitions = JSON.parse(storedExp);
+          if (storedDiff) this.difficultyDefinitions = JSON.parse(storedDiff);
+          if (storedLoc) this.locationDefinitions = JSON.parse(storedLoc);
+
+          if (storedSched) {
+            this.schedule = JSON.parse(storedSched);
+          }
+
+          await this.fetchSchedule();
+        },
+
+        fetchSchedule() {
+          this.loading = true;
+          return Promise.all([
+            this.fetchSheetData('def_difficulty'),
+            this.fetchSheetData('def_location'),
+            this.fetchSheetData('def_interest_level'),
+            this.fetchSheetData('def_experience_level'),
+            this.fetchSheetData('schedule')
+          ]).then(([diffRows, locRows, interestRows, expRows, schedRows]) => {
+
+            if (diffRows && diffRows.length > 0) {
+              const diffMap = {};
+              diffRows.forEach(r => {
+                const id = String(r.Difficulty || r.id || r.name || r.display_name || '').trim();
+                if (id) {
+                  diffMap[id] = {
+                    id: id,
+                    name: String(r.display_name || r.name || id).trim(),
+                    multiplier: parseInt(r.multiplier || r.multiplier_value || 0, 10) || 0,
+                    color: String(r.colour_hex || r.color || r.hex || '#6C757D').trim()
+                  };
+                }
+              });
+              this.difficultyDefinitions = diffMap;
+              localStorage.setItem('elSol_def_difficulty', JSON.stringify(diffMap));
+            }
+
+            if (locRows && locRows.length > 0) {
+              const locMap = {};
+              locRows.forEach(r => {
+                const id = String(r.Location || r.location || r.id || r.name || r.display_name || r.A || '').trim();
+                if (id) {
+                  locMap[id] = {
+                    id: id,
+                    name: String(r.Location || r.display_name || r.name || r.A || r.id).trim(),
+                    colour_hex: String(r.colour_hex || r.color || r.hex || '').trim(),
+                    class_text_light: String(r.class_text_light || r.C || 'text-gray-700').trim(),
+                    class_text_dark: String(r.class_text_dark || r.D || 'text-gray-300').trim()
+                  };
+                }
+              });
+              this.locationDefinitions = locMap;
+              localStorage.setItem('elSol_def_location', JSON.stringify(locMap));
+            }
+
+            if (interestRows && interestRows.length > 0) {
+              const interestList = interestRows.map(r => {
+                const id = String(r.interest_level_id || r.id || r.level_id || r.A || '').trim();
+                const name = String(r.name || r.display_name || r.B || id).trim();
+                const hex = String(r.hex_color || r.colour_hex || r.hex || r.color || r.C || '#6C757D').trim();
+                return { id, name, hex };
+              }).filter(item => item.id);
+
+              if (interestList.length > 0) {
+                this.interestDefinitions = interestList;
+                localStorage.setItem('elSol_def_interest_level', JSON.stringify(interestList));
+              }
+            }
+
+            if (expRows && expRows.length > 0) {
+              const expList = expRows.map(r => {
+                const id = String(r.experience_level_id || r.id || r.level_id || r.A || '').trim();
+                const name = String(r.name || r.display_name || r.B || id).trim();
+                const hex = String(r.hex_color || r.colour_hex || r.hex || r.color || r.C || '#6C757D').trim();
+                return { id, name, hex };
+              }).filter(item => item.id);
+
+              if (expList.length > 0) {
+                this.experienceDefinitions = expList;
+                localStorage.setItem('elSol_def_experience_level', JSON.stringify(expList));
+              }
+            }
+
+            if (schedRows && schedRows.length > 0) {
+              this.schedule = schedRows.map((row, idx) => ({
+                id: String(row.id || (idx + 1)),
+                Date: String(row.Date || '').trim(),
+                Time: String(row.Time || '').trim(),
+                Style: String(row.Style || 'Salsa').trim(),
+                Name: String(row.Name || row['page title'] || 'Workshop').trim(),
+                Facilitator: String(row.Facilitator || '').trim(),
+                Difficulty: String(row.Difficulty || 'Public').trim(),
+                Location: String(row.Location || 'FOYER').trim(),
+                workshop_date: String(row.workshop_date || '').trim(),
+                start_time: String(row.start_time || '').trim(),
+                end_time: String(row.end_time || '').trim()
+              }));
+
+              localStorage.setItem('elSol_schedule', JSON.stringify(this.schedule));
+            }
+          }).catch(err => {
+            console.error('Error fetching sheet data:', err);
+          }).finally(() => {
+            this.loading = false;
+          });
+        },
+
+        fetchSheetData(sheetName) {
+          return new Promise((resolve) => {
+            const callbackName = `gviz_cb_${sheetName}_${Date.now()}`;
+            window[callbackName] = (response) => {
+              try {
+                if (response && response.table && response.table.rows) {
+                  const cols = response.table.cols.map(c => c.label || c.id);
+                  const extractVal = (cell) => {
+                    if (!cell) return '';
+                    if (cell.f !== undefined && cell.f !== null) return String(cell.f).trim();
+                    if (cell.v !== undefined && cell.v !== null) {
+                      if (Array.isArray(cell.v)) {
+                        const h = String(cell.v[0] || 0).padStart(2, '0');
+                        const m = String(cell.v[1] || 0).padStart(2, '0');
+                        const s = String(cell.v[2] || 0).padStart(2, '0');
+                        return `${h}:${m}:${s}`;
+                      }
+                      return String(cell.v).trim();
+                    }
+                    return '';
+                  };
+                  const parsedRows = response.table.rows.map(r => {
+                    const rowObj = {};
+                    r.c.forEach((cell, i) => {
+                      const colName = cols[i] || `col_${i}`;
+                      rowObj[colName] = extractVal(cell);
+                    });
+                    return rowObj;
+                  });
+                  resolve(parsedRows);
+                } else {
+                  resolve([]);
+                }
+              } catch (e) {
+                resolve([]);
+              } finally {
+                delete window[callbackName];
+                const scriptElem = document.getElementById(`script_${sheetName}`);
+                if (scriptElem) scriptElem.remove();
+              }
+            };
+
+            const url = `https://docs.google.com/spreadsheets/d/${this.sheetKey}/gviz/tq?tqx=responseHandler:${callbackName}&sheet=${sheetName}`;
+            const script = document.createElement('script');
+            script.id = `script_${sheetName}`;
+            script.src = url;
+            script.onerror = () => resolve([]);
+            document.body.appendChild(script);
+          });
+        },
+
+        get availableDates() {
+          const dates = new Set();
+          this.schedule.forEach(item => {
+            const dateVal = item.workshop_date || item.Date;
+            if (dateVal) dates.add(dateVal);
+          });
+          return Array.from(dates).sort();
+        },
+
+        get displayedDates() {
+          if (this.selectedDate !== 'All') return [this.selectedDate];
+          return this.availableDates;
+        },
+
+        get gridColClass() {
+          const count = this.displayedDates.length;
+          if (count === 1) return 'grid-cols-1';
+          if (count === 2) return 'grid-cols-2';
+          if (count === 3) return 'grid-cols-3';
+          return 'grid-cols-1 md:grid-cols-3';
+        },
+
+        getWorkshopsForDate(dateKey) {
+          return this.schedule.filter(item => {
+            const matchDate = (item.workshop_date === dateKey || item.Date === dateKey);
+            if (!matchDate) return false;
+
+            // Dance Style filter
+            if (this.selectedStyle !== 'All' && item.Style !== this.selectedStyle) {
+              return false;
+            }
+
+            // Facilitator / Artist filter
+            if (this.selectedFacilitator !== 'All' && item.Facilitator !== this.selectedFacilitator) {
+              return false;
+            }
+
+            const uData = this.getItemUserData(item.id);
+
+            // Interest Multi-select filter
+            if (this.selectedInterestLevels.length > 0) {
+              if (!uData.interest || !this.selectedInterestLevels.includes(String(uData.interest))) {
+                return false;
+              }
+            }
+
+            // Experience Multi-select filter
+            if (this.selectedExperienceRatings.length > 0) {
+              if (!uData.rating || !this.selectedExperienceRatings.includes(String(uData.rating))) {
+                return false;
+              }
+            }
+
+            return true;
+          });
+        },
+
+        formatDateFormatted(dateVal) {
+          console.log(typeof(dateVal), dateVal);
+          if (!dateVal) return '';
+          if (dateVal === '2026-11-12' || dateVal === '12.11' || dateVal === '12/11/2026') return '12 Nov';
+          if (dateVal === '2026-11-13' || dateVal === '13.11' || dateVal === '13/11/2026') return '13 Nov';
+          if (dateVal === '2026-11-14' || dateVal === '14.11' || dateVal === '14/11/2026') return '14 Nov';
+          if (dateVal === '2026-11-15' || dateVal === '15.11' || dateVal === '15/11/2026') return '15 Nov';
+
+          if (dateVal.includes('-')) {
+            const parts = dateVal.split('-');
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            const d = new Date(year, month, day);
+            const dayStr = String(d.getDate()).padStart(2, '0');
+            const monthStr = d.toLocaleString('en-US', { month: 'short' });
+            return `${dayStr} ${monthStr}`;
+          }
+
+          if (dateVal.includes('.')) {
+            const parts = dateVal.split('.');
+            const dayStr = parts[0].padStart(2, '0');
+            const mNum = parseInt(parts[1], 10);
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthStr = monthNames[mNum - 1] || 'Nov';
+            return `${dayStr} ${monthStr}`;
+          }
+
+          return dateVal;
+        },
+
+        // Calculate vertical position starting from 11:00 AM (660 mins) at 90px/hour (1.5px/min)
+        getEventPos(item) {
+          let startMin = null;
+          let endMin = null;
+
+          if (item.start_time) {
+            const match = String(item.start_time).match(/(\d{1,2}):(\d{2})/);
+            if (match) startMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+          }
+          if (item.end_time) {
+            const match = String(item.end_time).match(/(\d{1,2}):(\d{2})/);
+            if (match) endMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+          }
+
+          if ((startMin === null || endMin === null) && item.Time) {
+            const times = String(item.Time).match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+            if (times) {
+              if (startMin === null) startMin = parseInt(times[1], 10) * 60 + parseInt(times[2], 10);
+              if (endMin === null) endMin = parseInt(times[3], 10) * 60 + parseInt(times[4], 10);
+            } else {
+              const single = String(item.Time).match(/(\d{1,2}):(\d{2})/);
+              if (single && startMin === null) {
+                startMin = parseInt(single[1], 10) * 60 + parseInt(single[2], 10);
+              }
+            }
+          }
+
+          if (startMin === null) startMin = 11 * 60;
+          if (endMin === null || endMin <= startMin) endMin = startMin + 50;
+
+          const startOffset = 11 * 60; // 11:00 AM in minutes
+          const topPx = Math.max((startMin - startOffset) * 1.5, 0); // 1.5px per minute = 90px per hour
+          const durationMin = endMin - startMin;
+          const heightPx = Math.max(durationMin * 1.5, 42); // minimum 42px height for readability
+
+          return { top: topPx, height: heightPx, startMin, endMin };
+        },
+
+        getWorkshopsForDateWithLayout(dateKey) {
+          const items = this.getWorkshopsForDate(dateKey);
+          
+          const itemsWithBounds = items.map(item => {
+            const pos = this.getEventPos(item);
+            return {
+              item,
+              start: pos.startMin,
+              end: pos.endMin,
+              top: pos.top,
+              height: pos.height
+            };
+          });
+
+          itemsWithBounds.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+
+          const positionedItems = [];
+          let currentGroup = [];
+          let groupMaxEnd = 0;
+
+          itemsWithBounds.forEach(e => {
+            if (currentGroup.length === 0) {
+              currentGroup = [e];
+              groupMaxEnd = e.end;
+            } else if (e.start < groupMaxEnd) {
+              currentGroup.push(e);
+              if (e.end > groupMaxEnd) groupMaxEnd = e.end;
+            } else {
+              this.assignColumnsToGroup(currentGroup);
+              positionedItems.push(...currentGroup);
+              currentGroup = [e];
+              groupMaxEnd = e.end;
+            }
+          });
+
+          if (currentGroup.length > 0) {
+            this.assignColumnsToGroup(currentGroup);
+            positionedItems.push(...currentGroup);
+          }
+
+          return positionedItems;
+        },
+
+        assignColumnsToGroup(group) {
+          const cols = [];
+          group.forEach(e => {
+            let placed = false;
+            for (let i = 0; i < cols.length; i++) {
+              if (cols[i] <= e.start) {
+                cols[i] = e.end;
+                e.colIndex = i;
+                placed = true;
+                break;
+              }
+            }
+            if (!placed) {
+              e.colIndex = cols.length;
+              cols.push(e.end);
+            }
+          });
+
+          const numCols = cols.length;
+          group.forEach(e => {
+            e.totalCols = numCols;
+            e.leftPct = (e.colIndex / numCols) * 100;
+            e.widthPct = (1 / numCols) * 100;
+          });
+        },
+
+        formatTimeDisplay(item) {
+          if (item.start_time && item.end_time) {
+            const start = item.start_time.substring(0, 5);
+            const end = item.end_time.substring(0, 5);
+            return `${start} - ${end}`;
+          }
+          return item.Time || '';
+        },
+
+        getDifficultyMeta(diffRaw) {
+          if (!diffRaw) return { name: 'Public', multiplier: 0, color: '#edf1f5' };
+          const rawKey = String(diffRaw).trim();
+          if (this.difficultyDefinitions[rawKey]) return this.difficultyDefinitions[rawKey];
+          return { name: rawKey, multiplier: 0, color: '#edf1f5' };
+        },
+
+        getLocationMeta(locRaw) {
+          if (!locRaw) return { name: 'FOYER', colour_hex: '', class_text_light: 'text-gray-700 bg-gray-100', class_text_dark: 'text-gray-300 bg-gray-800' };
+          const rawKey = String(locRaw).trim();
+          if (this.locationDefinitions[rawKey]) return this.locationDefinitions[rawKey];
+          return { name: rawKey, colour_hex: '', class_text_light: 'text-gray-700 bg-gray-100', class_text_dark: 'text-gray-300 bg-gray-800' };
+        },
+
+        openModal(item) {
+          this.activeItem = item;
+          this.getItemUserData(item.id);
+          this.modalOpen = true;
+        },
+
+        closeModal() {
+          this.modalOpen = false;
+          this.activeItem = null;
+        },
+
+        getInterestHex(interestId) {
+          const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
+          return match ? match.hex : '#6C757D';
+        },
+
+        getInterestName(interestId) {
+          const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
+          return match ? match.name : 'Selected';
+        },
+
+        getExperienceHex(expId) {
+          const match = this.experienceDefinitions.find(e => String(e.id) === String(expId));
+          return match ? match.hex : '#6C757D';
+        },
+
+        getExperienceName(expId) {
+          const match = this.experienceDefinitions.find(e => String(e.id) === String(expId));
+          return match ? match.name : 'Rated';
+        },
+
+        getStyleBadgeBg(style) {
+          switch (style) {
+            case 'Bachata': return '#FCE7F3';
+            case 'Salsa': return '#FFEDD5';
+            case 'Cuban': return '#DBEAFE';
+            default: return '#F3F4F6';
+          }
+        },
+
+        getStyleBadgeText(style) {
+          switch (style) {
+            case 'Bachata': return '#9D174D';
+            case 'Salsa': return '#C2410C';
+            case 'Cuban': return '#1E40AF';
+            default: return '#374151';
+          }
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>

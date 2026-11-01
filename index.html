@@ -57,7 +57,6 @@
       </symbol>
     </defs>
   </svg>
-
 </head>
 
 <body
@@ -69,16 +68,16 @@
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
         <h1 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <span class="text-pink-600">elSol</span> Festival Schedule
+          <span class="text-pink-600">elSol</span> Grid View
         </h1>
-        <span
-          class="text-xs px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 font-medium hidden sm:inline-block">
-          Sound Garden Hotel
-        </span>
+        <a href="calendar.html"
+          class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-950/60 dark:text-pink-300 dark:hover:bg-pink-900/80 font-semibold transition shadow-2xs">
+          📅 <span>Switch to 24-Hour Calendar View</span> &rarr;
+        </a>
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- Fetch Schedule Button -->
+        <!-- Sync Schedule Button -->
         <button @click="fetchSchedule()" :disabled="loading"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-pink-600 hover:bg-pink-700 text-white transition shadow-sm">
           <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,56 +100,96 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-4 py-6">
-    <!-- Filters Bar -->
-    <section
-      class="mb-6 flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-white dark:bg-[#1E1E1E] p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+    <!-- Accordion Filters Component -->
+    <section class="mb-6 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      
+      <!-- Accordion Header Bar -->
+      <div @click="filtersOpen = !filtersOpen"
+        class="w-full px-4 py-3 bg-gray-50/80 dark:bg-gray-800/60 flex items-center justify-between cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <span class="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">Schedule Filters</span>
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 font-semibold"
+            x-text="activeFilterCount + ' Active'"></span>
+        </div>
 
-      <!-- Day Tabs -->
-      <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg text-xs font-medium">
-        <template x-for="day in days" :key="day">
-          <button @click="selectedDay = day"
-            :class="selectedDay === day ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
-            class="px-3 py-1.5 rounded-md transition" x-text="day"></button>
-        </template>
+        <div class="flex items-center gap-3">
+          <button @click.stop="resetFilters()" x-show="activeFilterCount > 0"
+            class="text-[11px] text-pink-600 dark:text-pink-400 hover:underline font-medium">
+            Reset Filters
+          </button>
+          <span class="text-gray-400 text-xs transition-transform duration-200" :class="filtersOpen ? 'rotate-180' : ''">&#9660;</span>
+        </div>
       </div>
 
-      <!-- Style Filter Chips -->
-      <div class="flex flex-wrap items-center gap-1.5">
-        <button @click="selectedStyle = 'All'"
-          :class="selectedStyle === 'All' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
-          class="px-2.5 py-1 text-xs rounded-full font-medium transition">All Styles</button>
-        <template x-for="style in styles" :key="style">
-          <button @click="selectedStyle = style"
-            :class="selectedStyle === style ? 'ring-2 ring-pink-500 font-semibold' : ''"
-            :style="`background-color: ${getStyleBadgeBg(style)}; color: ${getStyleBadgeText(style)}`"
-            class="px-2.5 py-1 text-xs rounded-full transition" x-text="style"></button>
-        </template>
-      </div>
+      <!-- Accordion Content Body -->
+      <div x-show="filtersOpen" x-collapse x-cloak class="p-4 space-y-4 border-t border-gray-200 dark:border-gray-800">
+        
+        <!-- Day Tabs -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Festival Day</label>
+          <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg text-xs font-medium w-fit">
+            <template x-for="day in days" :key="day">
+              <button @click="selectedDay = day"
+                :class="selectedDay === day ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+                class="px-3 py-1.5 rounded-md transition" x-text="day"></button>
+            </template>
+          </div>
+        </div>
 
-      <!-- Dropdown Filters & Search -->
-      <div class="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto">
-        <!-- Level of Interest Filter -->
-        <select x-model="selectedInterestFilter"
-          class="w-full sm:w-40 px-3 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 border-none text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
-          <option value="All">All Interest Levels</option>
-          <option value="Unselected">Unselected Only</option>
-          <template x-for="level in interestDefinitions" :key="level.id">
-            <option :value="level.id" x-text="level.name"></option>
-          </template>
-        </select>
+        <!-- Style Filter Chips -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dance Style</label>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button @click="selectedStyle = 'All'"
+              :class="selectedStyle === 'All' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
+              class="px-3 py-1 text-xs rounded-full transition">All Styles</button>
+            <template x-for="style in styles" :key="style">
+              <button @click="selectedStyle = style"
+                :class="selectedStyle === style ? 'ring-2 ring-pink-500 font-bold' : ''"
+                :style="`background-color: ${getStyleBadgeBg(style)}; color: ${getStyleBadgeText(style)}`"
+                class="px-3 py-1 text-xs rounded-full transition" x-text="style"></button>
+            </template>
+          </div>
+        </div>
 
-        <!-- Facilitator Alphabetical Filter -->
-        <select x-model="selectedFacilitator"
-          class="w-full sm:w-44 px-3 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 border-none text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
-          <option value="All">All Facilitators (A-Z)</option>
-          <template x-for="fac in alphabeticalFacilitators" :key="fac">
-            <option :value="fac" x-text="fac"></option>
-          </template>
-        </select>
+        <!-- Dropdowns & Search Controls -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <!-- Interest Filter -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Interest Level</label>
+            <select x-model="selectedInterestFilter"
+              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
+              <option value="All">All Interest Levels</option>
+              <option value="Unselected">Unselected Only</option>
+              <template x-for="level in interestDefinitions" :key="level.id">
+                <option :value="level.id" x-text="level.name"></option>
+              </template>
+            </select>
+          </div>
 
-        <!-- Search Input -->
-        <input type="text" x-model="searchQuery" placeholder="Search workshop..."
-          class="w-full sm:w-40 px-3 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 border-none dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-pink-500">
+          <!-- Facilitator / Artist Filter -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Artist / Instructor</label>
+            <select x-model="selectedFacilitator"
+              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
+              <option value="All">All Artists (A-Z)</option>
+              <template x-for="fac in alphabeticalFacilitators" :key="fac">
+                <option :value="fac" x-text="fac"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- Search Query -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Search Workshop</label>
+            <input type="text" x-model="searchQuery" placeholder="Search by name or artist..."
+              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-pink-500">
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -201,14 +240,12 @@
               </div>
             </div>
 
-            <!-- Interest Selection -->
+            <!-- Interest Selection: Dropdown OR Pill Badge -->
             <div class="pt-1 text-xs" @click.stop>
-              <!-- Show Dropdown if no interest selected -->
-              <template x-if="!getItemUserData(item.id).interest">
+              <template x-if="!userData[item.id] || !userData[item.id].interest">
                 <div>
                   <label class="block text-[10px] text-gray-400 mb-1">Interest Level</label>
-                  <select :value="getItemUserData(item.id).interest"
-                    @change="updateUserInterest(item.id, $event.target.value)"
+                  <select x-model="userData[item.id].interest" @change="saveUserData()"
                     class="w-full text-xs rounded bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1.5 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-pink-500">
                     <option value="">Select Interest...</option>
                     <template x-for="level in interestDefinitions" :key="level.id">
@@ -218,13 +255,12 @@
                 </div>
               </template>
 
-              <!-- Show Pill if interest selected -->
-              <template x-if="getItemUserData(item.id).interest">
+              <template x-if="userData[item.id] && userData[item.id].interest">
                 <div class="flex items-center justify-between gap-2">
                   <span
                     class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white shadow-xs"
-                    :style="`background-color: ${getInterestHex(getItemUserData(item.id).interest)}`">
-                    <span x-text="getInterestName(getItemUserData(item.id).interest)"></span>
+                    :style="`background-color: ${getInterestHex(userData[item.id].interest)}`">
+                    <span x-text="getInterestName(userData[item.id].interest)"></span>
                   </span>
 
                   <button @click.stop="openModal(item)"
@@ -235,10 +271,10 @@
               </template>
             </div>
 
-            <!-- Notes Snippet if present -->
-            <template x-if="getItemUserData(item.id).notes">
+            <!-- Notes Snippet -->
+            <template x-if="userData[item.id] && userData[item.id].notes">
               <p class="text-[11px] text-gray-500 dark:text-gray-400 italic truncate pt-1"
-                x-text="'💬 ' + getItemUserData(item.id).notes"></p>
+                x-text="'💬 ' + userData[item.id].notes"></p>
             </template>
 
           </div>
@@ -252,7 +288,7 @@
     </div>
   </main>
 
-  <!-- Modal for Rating & Notes -->
+  <!-- Interactive Modal for Rating & Notes -->
   <div x-show="modalOpen" x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
@@ -265,7 +301,6 @@
 
       <template x-if="activeItem">
         <div>
-          <!-- Header Info -->
           <div class="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
             <span class="font-semibold" x-text="activeItem.Date + ' • ' + activeItem.Time"></span>
             <span class="uppercase font-medium px-2 py-0.5 rounded text-[10px]"
@@ -277,7 +312,6 @@
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-4"
             x-text="'Facilitator: ' + (activeItem.Facilitator || 'N/A')"></p>
 
-          <!-- Badges -->
           <div class="mb-4 flex items-center justify-between gap-2">
             <span class="px-2.5 py-0.5 rounded-full text-xs font-medium"
               :style="`background-color: ${getStyleBadgeBg(activeItem.Style)}; color: ${getStyleBadgeText(activeItem.Style)}`"
@@ -299,13 +333,10 @@
 
           <hr class="border-gray-100 dark:border-gray-800">
 
-          <!-- Inputs Section -->
           <div class="space-y-4 pt-2">
-            <!-- Interest Level -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Interest Level</label>
-              <select :value="getItemUserData(activeItem.id).interest"
-                @change="updateUserInterest(activeItem.id, $event.target.value)"
+              <select x-model="userData[activeItem.id].interest" @change="saveUserData()"
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
                 <option value="">None (Unselected)</option>
                 <template x-for="level in interestDefinitions" :key="level.id">
@@ -314,11 +345,9 @@
               </select>
             </div>
 
-            <!-- Experience Rating -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Experience Rating</label>
-              <select :value="getItemUserData(activeItem.id).rating"
-                @change="updateUserRating(activeItem.id, $event.target.value)"
+              <select x-model="userData[activeItem.id].rating" @change="saveUserData()"
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
                 <option value="">Unrated</option>
                 <template x-for="exp in experienceDefinitions" :key="exp.id">
@@ -327,17 +356,14 @@
               </select>
             </div>
 
-            <!-- Personal Notes -->
             <div>
               <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Personal Notes</label>
-              <textarea :value="getItemUserData(activeItem.id).notes"
-                @input.debounce.300ms="updateUserNotes(activeItem.id, $event.target.value)" rows="3"
+              <textarea x-model="userData[activeItem.id].notes" @input.debounce.300ms="saveUserData()" rows="3"
                 placeholder="Add takeaways, moves learned, or comments..."
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-pink-500"></textarea>
             </div>
           </div>
 
-          <!-- Done Button -->
           <div class="pt-4 flex justify-end">
             <button @click="closeModal()"
               class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium text-xs rounded-lg transition shadow-sm">Save
@@ -349,10 +375,9 @@
   </div>
 
   <script>
-    // Register Service Worker for PWA Android Installation
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.log('Service Worker reg failed:', err));
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW reg failed:', err));
       });
     }
 
@@ -360,6 +385,7 @@
       return {
         darkMode: localStorage.getItem('darkMode') === 'true',
         loading: false,
+        filtersOpen: true,
         selectedDay: '13.11',
         selectedStyle: 'All',
         selectedFacilitator: 'All',
@@ -391,56 +417,27 @@
         locationDefinitions: {},
 
         schedule: [],
-        userData: {},
+        userData: JSON.parse(localStorage.getItem('elSol_userData') || '{}'),
 
         sheetKey: '1L7pRkX-guI1Ka30VcUjIYgE8pu8bhQFm4btvUi2athg',
 
-        loadUserDataFromStorage() {
-          try {
-            const raw = localStorage.getItem('elSol_userData');
-            this.userData = raw ? JSON.parse(raw) : {};
-          } catch (e) {
-            console.error('Failed to parse userData:', e);
-            this.userData = {};
-          }
+        get activeFilterCount() {
+          let count = 0;
+          if (this.selectedStyle !== 'All') count++;
+          if (this.selectedFacilitator !== 'All') count++;
+          if (this.selectedInterestFilter !== 'All') count++;
+          if (this.searchQuery.trim() !== '') count++;
+          return count;
         },
 
-        getItemUserData(id) {
-          const key = String(id);
-          if (!this.userData[key]) {
-            this.userData[key] = { interest: '', rating: '', notes: '' };
-          }
-          return this.userData[key];
-        },
-
-        saveUserData() {
-          localStorage.setItem('elSol_userData', JSON.stringify(this.userData));
-        },
-
-        updateUserInterest(id, val) {
-          const itemData = this.getItemUserData(id);
-          itemData.interest = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
-        },
-
-        updateUserRating(id, val) {
-          const itemData = this.getItemUserData(id);
-          itemData.rating = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
-        },
-
-        updateUserNotes(id, val) {
-          const itemData = this.getItemUserData(id);
-          itemData.notes = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
+        resetFilters() {
+          this.selectedStyle = 'All';
+          this.selectedFacilitator = 'All';
+          this.selectedInterestFilter = 'All';
+          this.searchQuery = '';
         },
 
         async init() {
-          this.loadUserDataFromStorage();
-
           const storedSched = localStorage.getItem('elSol_schedule');
           const storedDiff = localStorage.getItem('elSol_def_difficulty');
           const storedLoc = localStorage.getItem('elSol_def_location');
@@ -469,7 +466,6 @@
             this.fetchSheetData('def_experience_level'),
             this.fetchSheetData('schedule')
           ]).then(([diffRows, locRows, interestRows, expRows, schedRows]) => {
-
             if (diffRows && diffRows.length > 0) {
               const diffMap = {};
               diffRows.forEach(r => {
@@ -535,7 +531,7 @@
 
             if (schedRows && schedRows.length > 0) {
               this.schedule = schedRows.map((row, idx) => ({
-                id: String(row.id || (idx + 1)),
+                id: row.id || (idx + 1),
                 Date: String(row.Date || '13.11').trim(),
                 Time: String(row.Time || '').trim(),
                 Style: String(row.Style || 'Salsa').trim(),
@@ -562,11 +558,25 @@
               try {
                 if (response && response.table && response.table.rows) {
                   const cols = response.table.cols.map(c => c.label || c.id);
+                  const extractVal = (cell) => {
+                    if (!cell) return '';
+                    if (cell.f !== undefined && cell.f !== null) return String(cell.f).trim();
+                    if (cell.v !== undefined && cell.v !== null) {
+                      if (Array.isArray(cell.v)) {
+                        const h = String(cell.v[0] || 0).padStart(2, '0');
+                        const m = String(cell.v[1] || 0).padStart(2, '0');
+                        const s = String(cell.v[2] || 0).padStart(2, '0');
+                        return `${h}:${m}:${s}`;
+                      }
+                      return String(cell.v).trim();
+                    }
+                    return '';
+                  };
                   const parsedRows = response.table.rows.map(r => {
                     const rowObj = {};
                     r.c.forEach((cell, i) => {
                       const colName = cols[i] || `col_${i}`;
-                      rowObj[colName] = cell ? (cell.v !== null ? cell.v : '') : '';
+                      rowObj[colName] = extractVal(cell);
                     });
                     return rowObj;
                   });
@@ -604,7 +614,9 @@
           const lowerKey = rawKey.toLowerCase();
           for (const key in this.difficultyDefinitions) {
             const item = this.difficultyDefinitions[key];
-            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) return item;
+            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) {
+              return item;
+            }
           }
           return { name: rawKey, multiplier: 0, color: '#edf1f5' };
         },
@@ -617,26 +629,30 @@
           const lowerKey = rawKey.toLowerCase();
           for (const key in this.locationDefinitions) {
             const item = this.locationDefinitions[key];
-            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) return item;
+            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) {
+              return item;
+            }
           }
           return { name: rawKey, colour_hex: '', class_text_light: 'text-gray-700 bg-gray-100', class_text_dark: 'text-gray-300 bg-gray-800' };
         },
 
         ensureUserDataStructure() {
-          let updated = false;
           this.schedule.forEach(item => {
-            const key = String(item.id);
-            if (!this.userData[key]) {
-              this.userData[key] = { interest: '', rating: '', notes: '' };
-              updated = true;
+            if (!this.userData[item.id]) {
+              this.userData[item.id] = { interest: '', rating: '', notes: '' };
             }
           });
-          if (updated) this.saveUserData();
+        },
+
+        saveUserData() {
+          localStorage.setItem('elSol_userData', JSON.stringify(this.userData));
         },
 
         openModal(item) {
           this.activeItem = item;
-          this.getItemUserData(item.id);
+          if (!this.userData[item.id]) {
+            this.userData[item.id] = { interest: '', rating: '', notes: '' };
+          }
           this.modalOpen = true;
         },
 
@@ -648,7 +664,9 @@
         get alphabeticalFacilitators() {
           const names = new Set();
           this.schedule.forEach(s => {
-            if (s.Facilitator && s.Facilitator.trim() !== '') names.add(s.Facilitator.trim());
+            if (s.Facilitator && s.Facilitator.trim() !== '') {
+              names.add(s.Facilitator.trim());
+            }
           });
           return Array.from(names).sort((a, b) => a.localeCompare(b));
         },
@@ -659,8 +677,7 @@
             const matchesStyle = this.selectedStyle === 'All' || item.Style === this.selectedStyle;
             const matchesFacilitator = this.selectedFacilitator === 'All' || item.Facilitator === this.selectedFacilitator;
 
-            const uData = this.getItemUserData(item.id);
-            const userInterest = String(uData.interest || '');
+            const userInterest = this.userData[item.id] ? String(this.userData[item.id].interest) : '';
             let matchesInterest = true;
 
             if (this.selectedInterestFilter === 'Unselected') {
@@ -678,17 +695,17 @@
         },
 
         getInterestHex(interestId) {
-          const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
+          const match = this.interestDefinitions.find(i => i.id === String(interestId));
           return match ? match.hex : '#6C757D';
         },
 
         getInterestName(interestId) {
-          const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
+          const match = this.interestDefinitions.find(i => i.id === String(interestId));
           return match ? match.name : 'Selected';
         },
 
         getCardBorderStyle(itemId) {
-          const userRec = this.getItemUserData(itemId);
+          const userRec = this.userData[itemId];
           if (userRec && userRec.interest) {
             const hex = this.getInterestHex(userRec.interest);
             return `border-color: ${hex};`;
