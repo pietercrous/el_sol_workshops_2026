@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>El Sol Festival - 24-Hour Calendar View</title>
+  <title>El Sol Festival Schedule</title>
 
   <!-- PWA Meta Tags & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -12,7 +12,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="elSol Calendar">
+  <meta name="apple-mobile-web-app-title" content="elSol Schedule">
   <link rel="apple-touch-icon" href="icon-192.png">
 
   <!-- Tailwind CSS -->
@@ -68,14 +68,16 @@
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
         <h1 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <span class="text-pink-600">elSol</span> Calendar
+          <span class="text-pink-600">elSol</span> Grid View
         </h1>
-        <a href="index.html" class="text-xs px-3 py-1 rounded-lg bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 font-medium hover:bg-pink-200 transition">
-          &larr; Switch to Grid View
+        <a href="calendar.html"
+          class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-950/60 dark:text-pink-300 dark:hover:bg-pink-900/80 font-semibold transition shadow-2xs">
+          📅 <span>Switch to 24-Hour Calendar View</span> &rarr;
         </a>
       </div>
 
       <div class="flex items-center gap-2">
+        <!-- Sync Schedule Button -->
         <button @click="fetchSchedule()" :disabled="loading"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-pink-600 hover:bg-pink-700 text-white transition shadow-sm">
           <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,7 +100,7 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-4 py-6">
-    <!-- Accordion Filter Controls Bar -->
+    <!-- Accordion Filters Component -->
     <section class="mb-6 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
       
       <!-- Accordion Header Bar -->
@@ -108,7 +110,7 @@
           <svg class="w-4 h-4 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
-          <span class="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">Calendar Filters</span>
+          <span class="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">Schedule Filters</span>
           <span class="text-[11px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 font-semibold"
             x-text="activeFilterCount + ' Active'"></span>
         </div>
@@ -122,25 +124,22 @@
         </div>
       </div>
 
-      <!-- Accordion Body -->
+      <!-- Accordion Content Body -->
       <div x-show="filtersOpen" x-collapse x-cloak class="p-4 space-y-4 border-t border-gray-200 dark:border-gray-800">
         
-        <!-- Date Filter Tabs -->
+        <!-- Day Tabs -->
         <div>
           <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Festival Day</label>
-          <div class="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg text-xs font-medium w-fit">
-            <button @click="selectedDate = 'All'"
-              :class="selectedDate === 'All' ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
-              class="px-3 py-1.5 rounded-md transition">All Days</button>
-            <template x-for="date in availableDates" :key="date">
-              <button @click="selectedDate = date"
-                :class="selectedDate === date ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
-                class="px-3 py-1.5 rounded-md transition" x-text="formatDateFormatted(date)"></button>
+          <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg text-xs font-medium w-fit">
+            <template x-for="day in days" :key="day">
+              <button @click="selectedDay = day"
+                :class="selectedDay === day ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-sm font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+                class="px-3 py-1.5 rounded-md transition" x-text="day"></button>
             </template>
           </div>
         </div>
 
-        <!-- Dance Style Chips -->
+        <!-- Style Filter Chips -->
         <div>
           <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dance Style</label>
           <div class="flex flex-wrap items-center gap-1.5">
@@ -156,11 +155,24 @@
           </div>
         </div>
 
-        <!-- Artist / Instructor & Multi-select Interest/Ratings -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-          <!-- Artist / Facilitator Select -->
+        <!-- Dropdowns & Search Controls -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <!-- Interest Filter -->
           <div>
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Artist / Instructor</label>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Interest Level</label>
+            <select x-model="selectedInterestFilter"
+              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
+              <option value="All">All Interest Levels</option>
+              <option value="Unselected">Unselected Only</option>
+              <template x-for="level in interestDefinitions" :key="level.id">
+                <option :value="level.id" x-text="level.name"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- Facilitator / Artist Filter -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Artist / Instructor</label>
             <select x-model="selectedFacilitator"
               class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
               <option value="All">All Artists (A-Z)</option>
@@ -170,141 +182,113 @@
             </select>
           </div>
 
-          <!-- Multi-select Interest Levels -->
+          <!-- Search Query -->
           <div>
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Filter by Interest Levels</label>
-            <div class="flex flex-wrap items-center gap-1.5">
-              <template x-for="lvl in interestDefinitions" :key="lvl.id">
-                <button @click="toggleInterestFilter(lvl.id)"
-                  :class="selectedInterestLevels.includes(String(lvl.id)) ? 'ring-2 ring-offset-1 ring-pink-500 font-bold scale-105' : 'opacity-70 hover:opacity-100'"
-                  :style="`background-color: ${lvl.hex}; color: #ffffff;`"
-                  class="px-2.5 py-1 rounded-full text-xs transition shadow-2xs flex items-center gap-1">
-                  <span x-text="selectedInterestLevels.includes(String(lvl.id)) ? '✓' : '+'"></span>
-                  <span x-text="lvl.name"></span>
-                </button>
-              </template>
-              <button @click="selectedInterestLevels = []" x-show="selectedInterestLevels.length > 0"
-                class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1">Clear</button>
-            </div>
-          </div>
-
-          <!-- Multi-select Experience Ratings -->
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Filter by Experience Ratings</label>
-            <div class="flex flex-wrap items-center gap-1.5">
-              <template x-for="exp in experienceDefinitions" :key="exp.id">
-                <button @click="toggleExperienceFilter(exp.id)"
-                  :class="selectedExperienceRatings.includes(String(exp.id)) ? 'ring-2 ring-offset-1 ring-pink-500 font-bold scale-105' : 'opacity-70 hover:opacity-100'"
-                  :style="`background-color: ${exp.hex}; color: #ffffff;`"
-                  class="px-2.5 py-1 rounded-full text-xs transition shadow-2xs flex items-center gap-1">
-                  <span x-text="selectedExperienceRatings.includes(String(exp.id)) ? '✓' : '+'"></span>
-                  <span x-text="exp.name"></span>
-                </button>
-              </template>
-              <button @click="selectedExperienceRatings = []" x-show="selectedExperienceRatings.length > 0"
-                class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1">Clear</button>
-            </div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Search Workshop</label>
+            <input type="text" x-model="searchQuery" placeholder="Search by name or artist..."
+              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-pink-500">
           </div>
         </div>
 
       </div>
     </section>
 
-    <!-- 24-Hour Vertical Calendar Layout (11:00 to 23:00, Height per Hour = 90px) -->
-    <div class="bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-      
-      <!-- Date Column Headers -->
-      <div class="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/80 sticky top-[57px] z-20">
-        <!-- Time Column Header Spacer -->
-        <div class="w-16 sm:w-20 shrink-0 border-r border-gray-200 dark:border-gray-800 p-3 text-center text-xs font-semibold text-gray-400">
-          Time
-        </div>
-        <!-- Day Columns Header -->
-        <div class="flex-1 grid gap-0" :class="gridColClass">
-          <template x-for="dateKey in displayedDates" :key="dateKey">
-            <div class="p-3 text-center border-r border-gray-200 dark:border-gray-800 last:border-r-0">
-              <span class="block font-bold text-sm text-gray-900 dark:text-white" x-text="formatDateFormatted(dateKey)"></span>
-              <span class="text-[11px] text-gray-500 dark:text-gray-400 font-medium" x-text="getWorkshopsForDate(dateKey).length + ' events'"></span>
+    <!-- Cards Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <template x-for="item in filteredSchedule" :key="item.id">
+        <div @click="openModal(item)"
+          class="bg-white dark:bg-[#1E1E1E] rounded-xl border-2 p-4 flex flex-col justify-between shadow-sm cursor-pointer hover:shadow-md transition-all duration-200 relative"
+          :style="getCardBorderStyle(item.id)">
+          <div>
+            <!-- Time & Location Header -->
+            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+              <span class="font-semibold text-gray-700 dark:text-gray-300" x-text="item.Time"></span>
+              <span class="uppercase tracking-wider px-2 py-0.5 rounded text-[10px] font-medium"
+                :class="darkMode ? getLocationMeta(item.Location).class_text_dark : getLocationMeta(item.Location).class_text_light"
+                :style="`background-color: ${getLocationMeta(item.Location).colour_hex || 'transparent'}`"
+                x-text="getLocationMeta(item.Location).name"></span>
             </div>
-          </template>
-        </div>
-      </div>
 
-      <!-- Vertical Grid Container (13 Hours from 11:00 to 23:00; Height: 13 * 90px = 1170px) -->
-      <div class="relative overflow-y-auto max-h-[78vh]">
-        <div class="flex relative min-h-[1170px]">
-          
-          <!-- Vertical Time Slot Axis (11:00 to 23:00) -->
-          <div class="w-16 sm:w-20 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 select-none">
-            <template x-for="hIndex in 13" :key="hIndex">
-              <div class="h-[90px] border-b border-gray-100 dark:border-gray-800/60 pr-2 pt-1 text-right text-xs font-bold text-gray-500 dark:text-gray-400">
-                <span x-text="String(hIndex + 10).padStart(2, '0') + ':00'"></span>
-              </div>
-            </template>
+            <!-- Workshop Name -->
+            <h3 class="font-bold text-sm text-gray-900 dark:text-white mb-1" x-text="item.Name"></h3>
+
+            <!-- Facilitator -->
+            <p class="text-xs text-gray-600 dark:text-gray-400 mb-3" x-text="item.Facilitator || '—'"></p>
           </div>
 
-          <!-- Day Columns Content Grid -->
-          <div class="flex-1 grid gap-0 relative" :class="gridColClass">
-            <template x-for="dateKey in displayedDates" :key="dateKey">
-              <div class="relative border-r border-gray-200 dark:border-gray-800 last:border-r-0 min-h-[1170px]">
-                
-                <!-- Hour Horizontal Gridlines -->
-                <template x-for="h in 13" :key="h">
-                  <div class="h-[90px] border-b border-gray-100 dark:border-gray-800/40"></div>
-                </template>
+          <div class="pt-3 border-t border-gray-100 dark:border-gray-800/80 flex flex-col gap-2.5">
 
-                <!-- Workshop Events Rendered Side-by-Side at Exact Vertical Time Slots -->
-                <template x-for="eObj in getWorkshopsForDateWithLayout(dateKey)" :key="eObj.item.id">
-                  <div @click="openModal(eObj.item)"
-                    class="absolute rounded-lg p-2 shadow-xs cursor-pointer overflow-hidden transition-all duration-150 border-l-4 hover:z-30 hover:shadow-md"
-                    :style="`
-                      top: ${eObj.top}px;
-                      height: ${eObj.height}px;
-                      left: calc(${eObj.leftPct}% + 2px);
-                      width: calc(${eObj.widthPct}% - 4px);
-                      border-left-color: ${getInterestHex(getItemUserData(eObj.item.id).interest || '')};
-                      background-color: ${darkMode ? '#262626' : '#FFFFFF'};
-                      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-                    `">
-                    
-                    <div class="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                      <span class="uppercase px-1.5 py-0.5 rounded text-[9px] font-bold tracking-tight truncate max-w-[80px]"
-                        :class="darkMode ? getLocationMeta(eObj.item.Location).class_text_dark : getLocationMeta(eObj.item.Location).class_text_light"
-                        :style="`background-color: ${getLocationMeta(eObj.item.Location).colour_hex || 'transparent'}`"
-                        x-text="getLocationMeta(eObj.item.Location).name"></span>
-                    </div>
+            <!-- Badges: Style & Difficulty -->
+            <div class="flex items-center justify-between text-xs">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium"
+                :style="`background-color: ${getStyleBadgeBg(item.Style)}; color: ${getStyleBadgeText(item.Style)}`"
+                x-text="item.Style"></span>
 
-                    <h3 class="font-bold text-xs sm:text-sm text-gray-900 dark:text-white leading-tight mb-0.5" x-text="eObj.item.Name"></h3>
-                    <p class="text-xs text-gray-600 dark:text-gray-300 font-medium truncate mb-1" x-text="eObj.item.Facilitator || '—'"></p>
-
-                    <div class="flex items-center justify-between gap-1 text-[10px] mt-1" x-show="eObj.height >= 50">
-                      <span class="px-2 py-0.5 rounded-full font-semibold"
-                        :style="`background-color: ${getStyleBadgeBg(eObj.item.Style)}; color: ${getStyleBadgeText(eObj.item.Style)}`"
-                        x-text="eObj.item.Style"></span>
-
-                      <div class="flex items-center gap-1">
-                        <template x-if="getItemUserData(eObj.item.id).interest">
-                          <span class="px-2 py-0.5 rounded-full text-white font-bold"
-                            :style="`background-color: ${getInterestHex(getItemUserData(eObj.item.id).interest)}`"
-                            x-text="getInterestName(getItemUserData(eObj.item.id).interest)"></span>
-                        </template>
-                      </div>
-                    </div>
-
-                  </div>
-                </template>
-
+              <!-- Dynamic Difficulty Badge with Icons -->
+              <div
+                class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-[10px] justify-center font-medium"
+                :style="`background-color: ${getDifficultyMeta(item.Difficulty).color};
+                  color: oklch(from ${getDifficultyMeta(item.Difficulty).color} calc(l - 0.35) c h);
+                  `">
+                <div class="flex items-center gap-0.5 py-0.5">
+                  <template x-for="n in getDifficultyMeta(item.Difficulty).multiplier" :key="n">
+                    <svg class="icon" width="16" height="16">
+                      <use href="#icon-ghost"></use>
+                    </svg>
+                  </template>
+                </div>
               </div>
+            </div>
+
+            <!-- Interest Selection: Dropdown OR Pill Badge -->
+            <div class="pt-1 text-xs" @click.stop>
+              <template x-if="!userData[item.id] || !userData[item.id].interest">
+                <div>
+                  <label class="block text-[10px] text-gray-400 mb-1">Interest Level</label>
+                  <select x-model="userData[item.id].interest" @change="saveUserData()"
+                    class="w-full text-xs rounded bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1.5 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-pink-500">
+                    <option value="">Select Interest...</option>
+                    <template x-for="level in interestDefinitions" :key="level.id">
+                      <option :value="level.id" x-text="level.name"></option>
+                    </template>
+                  </select>
+                </div>
+              </template>
+
+              <template x-if="userData[item.id] && userData[item.id].interest">
+                <div class="flex items-center justify-between gap-2">
+                  <span
+                    class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white shadow-xs"
+                    :style="`background-color: ${getInterestHex(userData[item.id].interest)}`">
+                    <span x-text="getInterestName(userData[item.id].interest)"></span>
+                  </span>
+
+                  <button @click.stop="openModal(item)"
+                    class="text-[11px] text-pink-600 dark:text-pink-400 hover:underline font-medium">
+                    Edit details &rarr;
+                  </button>
+                </div>
+              </template>
+            </div>
+
+            <!-- Notes Snippet -->
+            <template x-if="userData[item.id] && userData[item.id].notes">
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 italic truncate pt-1"
+                x-text="'💬 ' + userData[item.id].notes"></p>
             </template>
+
           </div>
-
         </div>
-      </div>
+      </template>
+    </section>
 
+    <!-- Empty State -->
+    <div x-show="filteredSchedule.length === 0" class="text-center py-12 text-gray-400 text-sm">
+      No workshops match your current filters.
     </div>
   </main>
 
-  <!-- Modal for Editing Workshop Interest & Notes -->
+  <!-- Interactive Modal for Rating & Notes -->
   <div x-show="modalOpen" x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
@@ -318,7 +302,7 @@
       <template x-if="activeItem">
         <div>
           <div class="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <span class="font-semibold" x-text="formatTimeDisplay(activeItem)"></span>
+            <span class="font-semibold" x-text="activeItem.Date + ' • ' + activeItem.Time"></span>
             <span class="uppercase font-medium px-2 py-0.5 rounded text-[10px]"
               :class="darkMode ? getLocationMeta(activeItem.Location).class_text_dark : getLocationMeta(activeItem.Location).class_text_light"
               :style="`background-color: ${getLocationMeta(activeItem.Location).colour_hex || 'transparent'}`"
@@ -328,11 +312,31 @@
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-4"
             x-text="'Facilitator: ' + (activeItem.Facilitator || 'N/A')"></p>
 
+          <div class="mb-4 flex items-center justify-between gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium"
+              :style="`background-color: ${getStyleBadgeBg(activeItem.Style)}; color: ${getStyleBadgeText(activeItem.Style)}`"
+              x-text="activeItem.Style"></span>
+            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium" :style="`
+                  background-color: ${getDifficultyMeta(activeItem.Difficulty).color}; 
+                  color: oklch(from ${getDifficultyMeta(activeItem.Difficulty).color} calc(l - 0.35) c h);
+                `">
+              <span x-text="getDifficultyMeta(activeItem.Difficulty).name"></span>
+              <div class="flex items-center gap-0.5 py-0.5">
+                <template x-for="n in Number(getDifficultyMeta(activeItem.Difficulty).multiplier)" :key="n">
+                  <svg class="icon" width="20" height="20">
+                    <use href="#icon-ghost"></use>
+                  </svg>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <hr class="border-gray-100 dark:border-gray-800">
+
           <div class="space-y-4 pt-2">
             <div>
               <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Interest Level</label>
-              <select :value="getItemUserData(activeItem.id).interest"
-                @change="updateUserInterest(activeItem.id, $event.target.value)"
+              <select x-model="userData[activeItem.id].interest" @change="saveUserData()"
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
                 <option value="">None (Unselected)</option>
                 <template x-for="level in interestDefinitions" :key="level.id">
@@ -343,8 +347,7 @@
 
             <div>
               <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Experience Rating</label>
-              <select :value="getItemUserData(activeItem.id).rating"
-                @change="updateUserRating(activeItem.id, $event.target.value)"
+              <select x-model="userData[activeItem.id].rating" @change="saveUserData()"
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
                 <option value="">Unrated</option>
                 <template x-for="exp in experienceDefinitions" :key="exp.id">
@@ -355,8 +358,7 @@
 
             <div>
               <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Personal Notes</label>
-              <textarea :value="getItemUserData(activeItem.id).notes"
-                @input.debounce.300ms="updateUserNotes(activeItem.id, $event.target.value)" rows="3"
+              <textarea x-model="userData[activeItem.id].notes" @input.debounce.300ms="saveUserData()" rows="3"
                 placeholder="Add takeaways, moves learned, or comments..."
                 class="w-full text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-pink-500"></textarea>
             </div>
@@ -364,7 +366,8 @@
 
           <div class="pt-4 flex justify-end">
             <button @click="closeModal()"
-              class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium text-xs rounded-lg transition shadow-sm">Save & Done</button>
+              class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium text-xs rounded-lg transition shadow-sm">Save
+              & Done</button>
           </div>
         </div>
       </template>
@@ -383,14 +386,15 @@
         darkMode: localStorage.getItem('darkMode') === 'true',
         loading: false,
         filtersOpen: true,
-        selectedDate: 'All',
+        selectedDay: '13.11',
         selectedStyle: 'All',
         selectedFacilitator: 'All',
-        selectedInterestLevels: [],
-        selectedExperienceRatings: [],
+        selectedInterestFilter: 'All',
+        searchQuery: '',
         modalOpen: false,
         activeItem: null,
 
+        days: ['13.11', '14.11', '15.11'],
         styles: ['Salsa', 'Cuban', 'Bachata', 'Special'],
 
         interestDefinitions: [
@@ -411,8 +415,9 @@
 
         difficultyDefinitions: {},
         locationDefinitions: {},
+
         schedule: [],
-        userData: {},
+        userData: JSON.parse(localStorage.getItem('elSol_userData') || '{}'),
 
         sheetKey: '1L7pRkX-guI1Ka30VcUjIYgE8pu8bhQFm4btvUi2athg',
 
@@ -420,92 +425,19 @@
           let count = 0;
           if (this.selectedStyle !== 'All') count++;
           if (this.selectedFacilitator !== 'All') count++;
-          if (this.selectedInterestLevels.length > 0) count += this.selectedInterestLevels.length;
-          if (this.selectedExperienceRatings.length > 0) count += this.selectedExperienceRatings.length;
+          if (this.selectedInterestFilter !== 'All') count++;
+          if (this.searchQuery.trim() !== '') count++;
           return count;
         },
 
-        loadUserDataFromStorage() {
-          try {
-            const raw = localStorage.getItem('elSol_userData');
-            this.userData = raw ? JSON.parse(raw) : {};
-          } catch (e) {
-            this.userData = {};
-          }
-        },
-
-        getItemUserData(id) {
-          const key = String(id);
-          if (!this.userData[key]) {
-            this.userData[key] = { interest: '', rating: '', notes: '' };
-          }
-          return this.userData[key];
-        },
-
-        saveUserData() {
-          localStorage.setItem('elSol_userData', JSON.stringify(this.userData));
-        },
-
-        updateUserInterest(id, val) {
-          const itemData = this.getItemUserData(id);
-          itemData.interest = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
-        },
-
-        updateUserRating(id, val) {
-          const itemData = this.getItemUserData(id);
-          itemData.rating = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
-        },
-
-        updateUserNotes(id, val) {
-          const itemData = this.getItemUserData(id);
-          itemData.notes = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
-        },
-
-        toggleInterestFilter(lvlId) {
-          const key = String(lvlId);
-          if (this.selectedInterestLevels.includes(key)) {
-            this.selectedInterestLevels = this.selectedInterestLevels.filter(k => k !== key);
-          } else {
-            this.selectedInterestLevels.push(key);
-          }
-        },
-
-        toggleExperienceFilter(expId) {
-          const key = String(expId);
-          if (this.selectedExperienceRatings.includes(key)) {
-            this.selectedExperienceRatings = this.selectedExperienceRatings.filter(k => k !== key);
-          } else {
-            this.selectedExperienceRatings.push(key);
-          }
-        },
-
         resetFilters() {
-          this.selectedDate = 'All';
           this.selectedStyle = 'All';
           this.selectedFacilitator = 'All';
-          this.selectedInterestLevels = [];
-          this.selectedExperienceRatings = [];
-        },
-
-        get alphabeticalFacilitators() {
-          const names = new Set();
-          this.schedule.forEach(s => {
-            if (s.Facilitator && s.Facilitator.trim() !== '') {
-              names.add(s.Facilitator.trim());
-            }
-          });
-          return Array.from(names).sort((a, b) => a.localeCompare(b));
+          this.selectedInterestFilter = 'All';
+          this.searchQuery = '';
         },
 
         async init() {
-          this.loadUserDataFromStorage();
-
           const storedSched = localStorage.getItem('elSol_schedule');
           const storedDiff = localStorage.getItem('elSol_def_difficulty');
           const storedLoc = localStorage.getItem('elSol_def_location');
@@ -519,6 +451,7 @@
 
           if (storedSched) {
             this.schedule = JSON.parse(storedSched);
+            this.ensureUserDataStructure();
           }
 
           await this.fetchSchedule();
@@ -533,7 +466,6 @@
             this.fetchSheetData('def_experience_level'),
             this.fetchSheetData('schedule')
           ]).then(([diffRows, locRows, interestRows, expRows, schedRows]) => {
-
             if (diffRows && diffRows.length > 0) {
               const diffMap = {};
               diffRows.forEach(r => {
@@ -599,20 +531,18 @@
 
             if (schedRows && schedRows.length > 0) {
               this.schedule = schedRows.map((row, idx) => ({
-                id: String(row.id || (idx + 1)),
-                Date: String(row.Date || '').trim(),
+                id: row.id || (idx + 1),
+                Date: String(row.Date || '13.11').trim(),
                 Time: String(row.Time || '').trim(),
                 Style: String(row.Style || 'Salsa').trim(),
                 Name: String(row.Name || row['page title'] || 'Workshop').trim(),
                 Facilitator: String(row.Facilitator || '').trim(),
                 Difficulty: String(row.Difficulty || 'Public').trim(),
-                Location: String(row.Location || 'FOYER').trim(),
-                workshop_date: String(row.workshop_date || '').trim(),
-                start_time: String(row.start_time || '').trim(),
-                end_time: String(row.end_time || '').trim()
+                Location: String(row.Location || 'FOYER').trim()
               }));
 
               localStorage.setItem('elSol_schedule', JSON.stringify(this.schedule));
+              this.ensureUserDataStructure();
             }
           }).catch(err => {
             console.error('Error fetching sheet data:', err);
@@ -655,6 +585,7 @@
                   resolve([]);
                 }
               } catch (e) {
+                console.error(`Error parsing ${sheetName}:`, e);
                 resolve([]);
               } finally {
                 delete window[callbackName];
@@ -667,219 +598,26 @@
             const script = document.createElement('script');
             script.id = `script_${sheetName}`;
             script.src = url;
-            script.onerror = () => resolve([]);
+            script.onerror = () => {
+              console.error(`Failed to fetch ${sheetName} script.`);
+              resolve([]);
+            };
             document.body.appendChild(script);
           });
-        },
-
-        get availableDates() {
-          const dates = new Set();
-          this.schedule.forEach(item => {
-            const dateVal = item.workshop_date || item.Date;
-            if (dateVal) dates.add(dateVal);
-          });
-          return Array.from(dates).sort();
-        },
-
-        get displayedDates() {
-          if (this.selectedDate !== 'All') return [this.selectedDate];
-          return this.availableDates;
-        },
-
-        get gridColClass() {
-          const count = this.displayedDates.length;
-          if (count === 1) return 'grid-cols-1';
-          if (count === 2) return 'grid-cols-2';
-          if (count === 3) return 'grid-cols-3';
-          return 'grid-cols-1 md:grid-cols-3';
-        },
-
-        getWorkshopsForDate(dateKey) {
-          return this.schedule.filter(item => {
-            const matchDate = (item.workshop_date === dateKey || item.Date === dateKey);
-            if (!matchDate) return false;
-
-            // Dance Style filter
-            if (this.selectedStyle !== 'All' && item.Style !== this.selectedStyle) {
-              return false;
-            }
-
-            // Facilitator / Artist filter
-            if (this.selectedFacilitator !== 'All' && item.Facilitator !== this.selectedFacilitator) {
-              return false;
-            }
-
-            const uData = this.getItemUserData(item.id);
-
-            // Interest Multi-select filter
-            if (this.selectedInterestLevels.length > 0) {
-              if (!uData.interest || !this.selectedInterestLevels.includes(String(uData.interest))) {
-                return false;
-              }
-            }
-
-            // Experience Multi-select filter
-            if (this.selectedExperienceRatings.length > 0) {
-              if (!uData.rating || !this.selectedExperienceRatings.includes(String(uData.rating))) {
-                return false;
-              }
-            }
-
-            return true;
-          });
-        },
-
-        formatDateFormatted(dateVal) {
-          console.log(typeof(dateVal), dateVal);
-          if (!dateVal) return '';
-          if (dateVal === '2026-11-12' || dateVal === '12.11' || dateVal === '12/11/2026') return '12 Nov';
-          if (dateVal === '2026-11-13' || dateVal === '13.11' || dateVal === '13/11/2026') return '13 Nov';
-          if (dateVal === '2026-11-14' || dateVal === '14.11' || dateVal === '14/11/2026') return '14 Nov';
-          if (dateVal === '2026-11-15' || dateVal === '15.11' || dateVal === '15/11/2026') return '15 Nov';
-
-          if (dateVal.includes('-')) {
-            const parts = dateVal.split('-');
-            const year = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1;
-            const day = parseInt(parts[2], 10);
-            const d = new Date(year, month, day);
-            const dayStr = String(d.getDate()).padStart(2, '0');
-            const monthStr = d.toLocaleString('en-US', { month: 'short' });
-            return `${dayStr} ${monthStr}`;
-          }
-
-          if (dateVal.includes('.')) {
-            const parts = dateVal.split('.');
-            const dayStr = parts[0].padStart(2, '0');
-            const mNum = parseInt(parts[1], 10);
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const monthStr = monthNames[mNum - 1] || 'Nov';
-            return `${dayStr} ${monthStr}`;
-          }
-
-          return dateVal;
-        },
-
-        // Calculate vertical position starting from 11:00 AM (660 mins) at 90px/hour (1.5px/min)
-        getEventPos(item) {
-          let startMin = null;
-          let endMin = null;
-
-          if (item.start_time) {
-            const match = String(item.start_time).match(/(\d{1,2}):(\d{2})/);
-            if (match) startMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-          }
-          if (item.end_time) {
-            const match = String(item.end_time).match(/(\d{1,2}):(\d{2})/);
-            if (match) endMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-          }
-
-          if ((startMin === null || endMin === null) && item.Time) {
-            const times = String(item.Time).match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
-            if (times) {
-              if (startMin === null) startMin = parseInt(times[1], 10) * 60 + parseInt(times[2], 10);
-              if (endMin === null) endMin = parseInt(times[3], 10) * 60 + parseInt(times[4], 10);
-            } else {
-              const single = String(item.Time).match(/(\d{1,2}):(\d{2})/);
-              if (single && startMin === null) {
-                startMin = parseInt(single[1], 10) * 60 + parseInt(single[2], 10);
-              }
-            }
-          }
-
-          if (startMin === null) startMin = 11 * 60;
-          if (endMin === null || endMin <= startMin) endMin = startMin + 50;
-
-          const startOffset = 11 * 60; // 11:00 AM in minutes
-          const topPx = Math.max((startMin - startOffset) * 1.5, 0); // 1.5px per minute = 90px per hour
-          const durationMin = endMin - startMin;
-          const heightPx = Math.max(durationMin * 1.5, 42); // minimum 42px height for readability
-
-          return { top: topPx, height: heightPx, startMin, endMin };
-        },
-
-        getWorkshopsForDateWithLayout(dateKey) {
-          const items = this.getWorkshopsForDate(dateKey);
-          
-          const itemsWithBounds = items.map(item => {
-            const pos = this.getEventPos(item);
-            return {
-              item,
-              start: pos.startMin,
-              end: pos.endMin,
-              top: pos.top,
-              height: pos.height
-            };
-          });
-
-          itemsWithBounds.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
-
-          const positionedItems = [];
-          let currentGroup = [];
-          let groupMaxEnd = 0;
-
-          itemsWithBounds.forEach(e => {
-            if (currentGroup.length === 0) {
-              currentGroup = [e];
-              groupMaxEnd = e.end;
-            } else if (e.start < groupMaxEnd) {
-              currentGroup.push(e);
-              if (e.end > groupMaxEnd) groupMaxEnd = e.end;
-            } else {
-              this.assignColumnsToGroup(currentGroup);
-              positionedItems.push(...currentGroup);
-              currentGroup = [e];
-              groupMaxEnd = e.end;
-            }
-          });
-
-          if (currentGroup.length > 0) {
-            this.assignColumnsToGroup(currentGroup);
-            positionedItems.push(...currentGroup);
-          }
-
-          return positionedItems;
-        },
-
-        assignColumnsToGroup(group) {
-          const cols = [];
-          group.forEach(e => {
-            let placed = false;
-            for (let i = 0; i < cols.length; i++) {
-              if (cols[i] <= e.start) {
-                cols[i] = e.end;
-                e.colIndex = i;
-                placed = true;
-                break;
-              }
-            }
-            if (!placed) {
-              e.colIndex = cols.length;
-              cols.push(e.end);
-            }
-          });
-
-          const numCols = cols.length;
-          group.forEach(e => {
-            e.totalCols = numCols;
-            e.leftPct = (e.colIndex / numCols) * 100;
-            e.widthPct = (1 / numCols) * 100;
-          });
-        },
-
-        formatTimeDisplay(item) {
-          if (item.start_time && item.end_time) {
-            const start = item.start_time.substring(0, 5);
-            const end = item.end_time.substring(0, 5);
-            return `${start} - ${end}`;
-          }
-          return item.Time || '';
         },
 
         getDifficultyMeta(diffRaw) {
           if (!diffRaw) return { name: 'Public', multiplier: 0, color: '#edf1f5' };
           const rawKey = String(diffRaw).trim();
           if (this.difficultyDefinitions[rawKey]) return this.difficultyDefinitions[rawKey];
+
+          const lowerKey = rawKey.toLowerCase();
+          for (const key in this.difficultyDefinitions) {
+            const item = this.difficultyDefinitions[key];
+            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) {
+              return item;
+            }
+          }
           return { name: rawKey, multiplier: 0, color: '#edf1f5' };
         },
 
@@ -887,12 +625,34 @@
           if (!locRaw) return { name: 'FOYER', colour_hex: '', class_text_light: 'text-gray-700 bg-gray-100', class_text_dark: 'text-gray-300 bg-gray-800' };
           const rawKey = String(locRaw).trim();
           if (this.locationDefinitions[rawKey]) return this.locationDefinitions[rawKey];
+
+          const lowerKey = rawKey.toLowerCase();
+          for (const key in this.locationDefinitions) {
+            const item = this.locationDefinitions[key];
+            if (key.toLowerCase() === lowerKey || item.name.toLowerCase() === lowerKey) {
+              return item;
+            }
+          }
           return { name: rawKey, colour_hex: '', class_text_light: 'text-gray-700 bg-gray-100', class_text_dark: 'text-gray-300 bg-gray-800' };
+        },
+
+        ensureUserDataStructure() {
+          this.schedule.forEach(item => {
+            if (!this.userData[item.id]) {
+              this.userData[item.id] = { interest: '', rating: '', notes: '' };
+            }
+          });
+        },
+
+        saveUserData() {
+          localStorage.setItem('elSol_userData', JSON.stringify(this.userData));
         },
 
         openModal(item) {
           this.activeItem = item;
-          this.getItemUserData(item.id);
+          if (!this.userData[item.id]) {
+            this.userData[item.id] = { interest: '', rating: '', notes: '' };
+          }
           this.modalOpen = true;
         },
 
@@ -901,24 +661,56 @@
           this.activeItem = null;
         },
 
+        get alphabeticalFacilitators() {
+          const names = new Set();
+          this.schedule.forEach(s => {
+            if (s.Facilitator && s.Facilitator.trim() !== '') {
+              names.add(s.Facilitator.trim());
+            }
+          });
+          return Array.from(names).sort((a, b) => a.localeCompare(b));
+        },
+
+        get filteredSchedule() {
+          return this.schedule.filter(item => {
+            const matchesDay = !this.selectedDay || item.Date === this.selectedDay;
+            const matchesStyle = this.selectedStyle === 'All' || item.Style === this.selectedStyle;
+            const matchesFacilitator = this.selectedFacilitator === 'All' || item.Facilitator === this.selectedFacilitator;
+
+            const userInterest = this.userData[item.id] ? String(this.userData[item.id].interest) : '';
+            let matchesInterest = true;
+
+            if (this.selectedInterestFilter === 'Unselected') {
+              matchesInterest = !userInterest;
+            } else if (this.selectedInterestFilter !== 'All') {
+              matchesInterest = userInterest === String(this.selectedInterestFilter);
+            }
+
+            const matchesQuery = !this.searchQuery ||
+              item.Name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+              (item.Facilitator && item.Facilitator.toLowerCase().includes(this.searchQuery.toLowerCase()));
+
+            return matchesDay && matchesStyle && matchesFacilitator && matchesInterest && matchesQuery;
+          });
+        },
+
         getInterestHex(interestId) {
-          const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
+          const match = this.interestDefinitions.find(i => i.id === String(interestId));
           return match ? match.hex : '#6C757D';
         },
 
         getInterestName(interestId) {
-          const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
+          const match = this.interestDefinitions.find(i => i.id === String(interestId));
           return match ? match.name : 'Selected';
         },
 
-        getExperienceHex(expId) {
-          const match = this.experienceDefinitions.find(e => String(e.id) === String(expId));
-          return match ? match.hex : '#6C757D';
-        },
-
-        getExperienceName(expId) {
-          const match = this.experienceDefinitions.find(e => String(e.id) === String(expId));
-          return match ? match.name : 'Rated';
+        getCardBorderStyle(itemId) {
+          const userRec = this.userData[itemId];
+          if (userRec && userRec.interest) {
+            const hex = this.getInterestHex(userRec.interest);
+            return `border-color: ${hex};`;
+          }
+          return 'border-color: transparent;';
         },
 
         getStyleBadgeBg(style) {
