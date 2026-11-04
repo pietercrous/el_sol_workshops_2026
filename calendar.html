@@ -62,60 +62,66 @@
 <body
   class="bg-gray-50 text-gray-800 dark:bg-[#121212] dark:text-gray-200 min-h-screen transition-colors duration-200 font-sans antialiased">
 
-  <!-- Header -->
+  <!-- Minimal Icon-based Header -->
   <header
-    class="sticky top-0 z-30 bg-white/90 dark:bg-[#181818]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-2.5">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+    class="sticky top-0 z-30 bg-white/90 dark:bg-[#181818]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-3 py-2">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
       
-      <div class="flex items-center justify-between sm:justify-start gap-2.5">
-        <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-1.5 shrink-0">
-          <span class="text-pink-600">elSol</span> <span class="hidden xs:inline">Calendar</span>
-        </h1>
-        <a href="index.html"
-          class="inline-flex items-center gap-1 text-[11px] sm:text-xs px-2.5 py-1.5 rounded-lg bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-950/70 dark:text-pink-300 dark:hover:bg-pink-900/80 font-semibold transition">
-          &larr; <span>Grid View</span>
-        </a>
-      </div>
+      <!-- Brand Title -->
+      <h1 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5 shrink-0">
+        <span class="text-pink-600">elSol</span> <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Calendar</span>
+      </h1>
 
-      <div class="flex items-center justify-end gap-2">
-        <button @click="fetchSchedule()" :disabled="loading"
-          class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-pink-600 hover:bg-pink-700 text-white transition shadow-xs">
-          <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Action Icon Buttons -->
+      <div class="flex items-center gap-1.5">
+        <!-- Switch View Icon Button -->
+        <a href="index.html" title="Switch to Grid View"
+          class="p-2 rounded-lg bg-pink-50 text-pink-700 hover:bg-pink-100 dark:bg-pink-950/60 dark:text-pink-300 dark:hover:bg-pink-900/80 transition flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+        </a>
+
+        <!-- Sync Icon Button -->
+        <button @click="fetchSchedule()" :disabled="loading" title="Sync Schedule"
+          class="p-2 rounded-lg bg-pink-600 hover:bg-pink-700 text-white transition shadow-2xs flex items-center justify-center">
+          <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.035 8.035 0 01-15.357-2m15.357 2H15" />
           </svg>
-          <svg x-show="loading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg x-show="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
           </svg>
-          <span x-text="loading ? 'Syncing...' : 'Sync Schedule'"></span>
         </button>
 
-        <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
-          class="p-1.5 px-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-          <span x-text="darkMode ? '☀️ Light' : '🌙 Dark'"></span>
+        <!-- Dark/Light Theme Icon Toggle -->
+        <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" title="Toggle Dark/Light Mode"
+          class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition flex items-center justify-center">
+          <span class="text-sm leading-none" x-text="darkMode ? '☀️' : '🌙'"></span>
         </button>
       </div>
 
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-6">
+  <main class="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4">
     <!-- Filter Controls Bar -->
-    <section class="mb-4 sm:mb-6 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden">
+    <section class="mb-3 sm:mb-4 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xs overflow-hidden">
       
       <div @click="filtersOpen = !filtersOpen"
-        class="w-full px-3.5 py-3 bg-gray-50/90 dark:bg-gray-800/60 flex items-center justify-between cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+        class="w-full px-3 py-2.5 bg-gray-50/90 dark:bg-gray-800/60 flex items-center justify-between cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800 transition">
         <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-pink-600 dark:text-pink-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-3.5 h-3.5 text-pink-600 dark:text-pink-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
-          <span class="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">Calendar Filters</span>
-          <span class="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 font-semibold"
+          <span class="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">Filters</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 font-semibold"
             x-text="activeFilterCount + ' Active'"></span>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2">
           <button @click.stop="resetFilters()" x-show="activeFilterCount > 0"
             class="text-[11px] text-pink-600 dark:text-pink-400 hover:underline font-medium">
             Reset
@@ -124,19 +130,19 @@
         </div>
       </div>
 
-      <div x-show="filtersOpen" x-collapse x-cloak class="p-3.5 sm:p-4 space-y-4 border-t border-gray-200 dark:border-gray-800">
+      <div x-show="filtersOpen" x-collapse x-cloak class="p-3 sm:p-4 space-y-3.5 border-t border-gray-200 dark:border-gray-800">
         
         <!-- Date Tabs -->
         <div>
           <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Festival Day</label>
           <div class="flex flex-wrap items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg text-xs font-medium">
             <button @click="selectedDate = 'All'"
-              :class="selectedDate === 'All' ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
-              class="px-2.5 py-1.5 rounded-md transition text-center flex-1 sm:flex-none">All Days</button>
+              :class="selectedDate === 'All' ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-2xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+              class="px-2.5 py-1 rounded-md transition text-center flex-1 sm:flex-none">All Days</button>
             <template x-for="date in availableDates" :key="date">
               <button @click="selectedDate = date"
-                :class="selectedDate === date ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
-                class="px-2.5 py-1.5 rounded-md transition text-center flex-1 sm:flex-none" x-text="formatDateFormatted(date)"></button>
+                :class="selectedDate === date ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-2xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+                class="px-2.5 py-1 rounded-md transition text-center flex-1 sm:flex-none" x-text="formatDateFormatted(date)"></button>
             </template>
           </div>
         </div>
@@ -207,29 +213,29 @@
       </div>
     </section>
 
-    <!-- Responsive Scrollable 24-Hour Vertical Calendar Layout -->
-    <div class="bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden">
+    <!-- Scrollable 24-Hour Vertical Calendar Layout with Style-Colored Transparent Fills -->
+    <div class="bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xs overflow-hidden">
       
       <div class="overflow-x-auto">
         <div class="min-w-[650px] sm:min-w-full">
           
           <!-- Date Column Headers -->
           <div class="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/80 sticky top-0 z-20">
-            <div class="w-14 sm:w-20 shrink-0 border-r border-gray-200 dark:border-gray-800 p-2 sm:p-3 text-center text-[11px] sm:text-xs font-semibold text-gray-400">
+            <div class="w-14 sm:w-20 shrink-0 border-r border-gray-200 dark:border-gray-800 p-2 text-center text-[10px] sm:text-xs font-semibold text-gray-400">
               Time
             </div>
             <div class="flex-1 grid gap-0" :class="gridColClass">
               <template x-for="dateKey in displayedDates" :key="dateKey">
-                <div class="p-2 sm:p-3 text-center border-r border-gray-200 dark:border-gray-800 last:border-r-0">
+                <div class="p-2 text-center border-r border-gray-200 dark:border-gray-800 last:border-r-0">
                   <span class="block font-bold text-xs sm:text-sm text-gray-900 dark:text-white" x-text="formatDateFormatted(dateKey)"></span>
-                  <span class="text-[10px] sm:text-[11px] text-gray-500 dark:text-gray-400 font-medium" x-text="getWorkshopsForDate(dateKey).length + ' events'"></span>
+                  <span class="text-[10px] text-gray-500 dark:text-gray-400 font-medium" x-text="getWorkshopsForDate(dateKey).length + ' events'"></span>
                 </div>
               </template>
             </div>
           </div>
 
           <!-- Vertical Grid Container -->
-          <div class="relative overflow-y-auto max-h-[75vh] touch-pan-y">
+          <div class="relative overflow-y-auto max-h-[78vh] touch-pan-y">
             <div class="flex relative min-h-[1170px]">
               
               <div class="w-14 sm:w-20 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 select-none">
@@ -240,7 +246,7 @@
                 </template>
               </div>
 
-              <!-- Day Columns Content Grid -->
+              <!-- Day Columns Grid -->
               <div class="flex-1 grid gap-0 relative" :class="gridColClass">
                 <template x-for="dateKey in displayedDates" :key="dateKey">
                   <div class="relative border-r border-gray-200 dark:border-gray-800 last:border-r-0 min-h-[1170px]">
@@ -258,8 +264,8 @@
                           left: calc(${eObj.leftPct}% + 1px);
                           width: calc(${eObj.widthPct}% - 2px);
                           border-left-color: ${getInterestHex(getItemUserData(eObj.item.id).interest || '')};
-                          background-color: ${darkMode ? '#262626' : '#FFFFFF'};
-                          box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+                          background-color: ${getStyleCardBg(eObj.item.Style)};
+                          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
                         `">
                         
                         <div class="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
@@ -270,7 +276,7 @@
                         </div>
 
                         <h3 class="font-bold text-[11px] sm:text-xs text-gray-900 dark:text-white leading-tight mb-0.5 line-clamp-2" x-text="eObj.item.Name"></h3>
-                        <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 font-medium truncate mb-0.5" x-text="eObj.item.Facilitator || '—'"></p>
+                        <p class="text-[10px] sm:text-xs text-gray-700 dark:text-gray-300 font-medium truncate mb-0.5" x-text="eObj.item.Facilitator || '—'"></p>
 
                         <div class="flex items-center justify-between gap-1 text-[9px] sm:text-[10px] mt-0.5" x-show="eObj.height >= 40">
                           <span class="px-1.5 py-0.2 rounded-full font-semibold truncate"
@@ -360,7 +366,7 @@
 
           <div class="pt-3 flex justify-end">
             <button @click="closeModal()"
-              class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium text-xs rounded-lg transition shadow-xs">Save & Done</button>
+              class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium text-xs rounded-lg transition shadow-2xs">Save & Done</button>
           </div>
         </div>
       </template>
@@ -929,6 +935,16 @@
             case 'Salsa': return '#C2410C';
             case 'Cuban': return '#1E40AF';
             default: return '#374151';
+          }
+        },
+
+        getStyleCardBg(style) {
+          const isDark = this.darkMode;
+          switch (style) {
+            case 'Bachata': return isDark ? 'rgba(157, 23, 77, 0.25)' : 'rgba(252, 231, 243, 0.65)';
+            case 'Salsa': return isDark ? 'rgba(194, 65, 12, 0.25)' : 'rgba(255, 237, 213, 0.65)';
+            case 'Cuban': return isDark ? 'rgba(30, 64, 175, 0.25)' : 'rgba(219, 234, 254, 0.65)';
+            default: return isDark ? 'rgba(38, 38, 38, 0.9)' : 'rgba(243, 244, 246, 0.75)';
           }
         }
       }
