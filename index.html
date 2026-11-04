@@ -50,7 +50,7 @@
         class="icon icon-tabler icons-tabler-outline icon-tabler-ghost">
         <path stroke="none" d="M0 0h24v24H0z" fill="none" />
         <path
-          d="M5 11a7 7 0 0 1 14 0v7a1.78 1.78 0 0 1 -3.1 1.4a1.65 1.65 0 0 0 -2.6 0a1.65 1.65 0 0 0 -2.6 0a1.65 1.65 0 0 0 -2.6 0a1.78 1.78 0 0 1 -3.1 -1.4v-7" />
+          d="M5 11a7 7 0 0 1 14 0v7a1.78 1.78 0 0 1 -3.1 1.4a1.65 1.65 0 0 0 -2.6 0a1.65 1.65 0 0 1 -2.6 0a1.65 1.65 0 0 0 -2.6 0a1.78 1.78 0 0 1 -3.1 -1.4v-7" />
         <path d="M10 10l.01 0" />
         <path d="M14 10l.01 0" />
         <path d="M10 14a3.5 3.5 0 0 0 4 0" />
@@ -92,7 +92,7 @@
           </svg>
         </button>
 
-        <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" title="Toggle Dark/Light Mode"
+        <button @click="darkMode = !darkMode" title="Toggle Dark/Light Mode"
           class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition flex items-center justify-center">
           <span class="text-sm leading-none" x-text="darkMode ? '☀️' : '🌙'"></span>
         </button>
@@ -370,11 +370,19 @@
       });
     }
 
+    function getInitialDarkMode() {
+      const saved = localStorage.getItem('darkMode');
+      if (saved !== null) {
+        return saved === 'true';
+      }
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
     function appData() {
       return {
-        darkMode: localStorage.getItem('darkMode') === 'true',
+        darkMode: getInitialDarkMode(),
         loading: false,
-        filtersOpen: false, // Minimized by default
+        filtersOpen: false,
         selectedDay: '13.11',
         selectedStyle: 'All',
         selectedFacilitator: 'All',
@@ -472,6 +480,10 @@
         },
 
         async init() {
+          this.$watch('darkMode', val => {
+            localStorage.setItem('darkMode', val);
+          });
+
           this.loadUserDataFromStorage();
 
           const storedSched = localStorage.getItem('elSol_schedule');
