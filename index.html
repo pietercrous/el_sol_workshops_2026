@@ -62,39 +62,44 @@
 <body
   class="bg-gray-50 text-gray-800 dark:bg-[#121212] dark:text-gray-200 min-h-screen transition-colors duration-200 font-sans antialiased">
 
-  <!-- Header -->
+  <!-- Minimal Icon-based Header -->
   <header
-    class="sticky top-0 z-30 bg-white/90 dark:bg-[#181818]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-3 sm:px-6 py-2.5">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+    class="sticky top-0 z-30 bg-white/90 dark:bg-[#181818]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-3 py-2">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
       
-      <div class="flex items-center justify-between sm:justify-start gap-2.5">
-        <h1 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-1.5 shrink-0">
-          <span class="text-pink-600">elSol</span> <span class="hidden xs:inline">Grid View</span>
-        </h1>
-        <a href="calendar.html"
-          class="inline-flex items-center gap-1 text-[11px] sm:text-xs px-2.5 py-1.5 rounded-lg bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-950/70 dark:text-pink-300 dark:hover:bg-pink-900/80 font-semibold transition">
-          <span>📅 24-Hour View</span> &rarr;
-        </a>
-      </div>
+      <!-- Brand Title -->
+      <h1 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5 shrink-0">
+        <span class="text-pink-600">elSol</span> <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Grid View</span>
+      </h1>
 
-      <div class="flex items-center justify-end gap-2">
-        <!-- Sync Schedule Button -->
-        <button @click="fetchSchedule()" :disabled="loading"
-          class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-pink-600 hover:bg-pink-700 text-white transition shadow-xs">
-          <svg x-show="!loading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Action Icon Buttons -->
+      <div class="flex items-center gap-1.5">
+        <!-- Switch View Icon Button -->
+        <a href="calendar.html" title="Switch to 24-Hour Calendar View"
+          class="p-2 rounded-lg bg-pink-50 text-pink-700 hover:bg-pink-100 dark:bg-pink-950/60 dark:text-pink-300 dark:hover:bg-pink-900/80 transition flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </a>
+
+        <!-- Sync Icon Button -->
+        <button @click="fetchSchedule()" :disabled="loading" title="Sync Schedule"
+          class="p-2 rounded-lg bg-pink-600 hover:bg-pink-700 text-white transition shadow-2xs flex items-center justify-center">
+          <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.035 8.035 0 01-15.357-2m15.357 2H15" />
           </svg>
-          <svg x-show="loading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg x-show="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
           </svg>
-          <span x-text="loading ? 'Syncing...' : 'Sync Schedule'"></span>
         </button>
 
-        <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
-          class="p-1.5 px-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-          <span x-text="darkMode ? '☀️ Light' : '🌙 Dark'"></span>
+        <!-- Dark/Light Theme Icon Toggle -->
+        <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" title="Toggle Dark/Light Mode"
+          class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition flex items-center justify-center">
+          <span class="text-sm leading-none" x-text="darkMode ? '☀️' : '🌙'"></span>
         </button>
       </div>
 
@@ -103,7 +108,7 @@
 
   <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
     <!-- Accordion Filters Component -->
-    <section class="mb-5 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden">
+    <section class="mb-4 sm:mb-6 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xs overflow-hidden">
       
       <div @click="filtersOpen = !filtersOpen"
         class="w-full px-3.5 py-3 bg-gray-50/90 dark:bg-gray-800/60 flex items-center justify-between cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800 transition">
@@ -132,7 +137,7 @@
           <div class="flex flex-wrap items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg text-xs font-medium">
             <template x-for="day in days" :key="day">
               <button @click="selectedDay = day"
-                :class="selectedDay === day ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+                :class="selectedDay === day ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-2xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
                 class="px-3 py-1.5 rounded-md transition text-center flex-1 sm:flex-none" x-text="day"></button>
             </template>
           </div>
@@ -191,7 +196,7 @@
     <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
       <template x-for="item in filteredSchedule" :key="item.id">
         <div @click="openModal(item)"
-          class="bg-white dark:bg-[#1E1E1E] rounded-xl border-2 p-3.5 sm:p-4 flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200 relative cursor-pointer"
+          class="bg-white dark:bg-[#1E1E1E] rounded-xl border-2 p-3.5 sm:p-4 flex flex-col justify-between shadow-2xs hover:shadow-md transition-all duration-200 relative cursor-pointer"
           :style="getCardBorderStyle(item.id)">
           <div>
             <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
@@ -355,7 +360,7 @@
 
           <div class="pt-3 flex justify-end">
             <button @click="closeModal()"
-              class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium text-xs rounded-lg transition shadow-xs">Save
+              class="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-medium text-xs rounded-lg transition shadow-2xs">Save
               & Done</button>
           </div>
         </div>
