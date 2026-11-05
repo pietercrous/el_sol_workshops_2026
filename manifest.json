@@ -1,7 +1,7 @@
 {
   "name": "elSol Festival Schedule 2026",
   "short_name": "elSol Schedule",
-  "start_url": "./",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#D63384",
