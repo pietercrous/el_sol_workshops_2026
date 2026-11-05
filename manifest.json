@@ -1,21 +1,21 @@
 {
+  "name": "elSol Festival Schedule 2026",
   "short_name": "elSol Schedule",
-  "name": "elSol 2026 Festival Workshop Schedule",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#D63384",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
       "src": "icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "type": "image/png"
     }
-  ],
-  "start_url": "./",
-  "background_color": "#121212",
-  "theme_color": "#D63384",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }
