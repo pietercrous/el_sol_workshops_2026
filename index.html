@@ -67,9 +67,15 @@
     class="sticky top-0 z-30 bg-white/90 dark:bg-[#181818]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-3 py-2">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       
-      <h1 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5 shrink-0">
-        <span class="text-pink-600">elSol</span> <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Grid View</span>
-      </h1>
+      <!-- Brand Title + Offline Indicator -->
+      <div class="flex items-center gap-2">
+        <h1 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5 shrink-0">
+          <span class="text-pink-600">elSol</span> <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Grid View</span>
+        </h1>
+        <span x-show="!isOnline" x-cloak class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+          ⚡ Offline Mode
+        </span>
+      </div>
 
       <div class="flex items-center gap-1.5">
         <a href="calendar.html" title="Switch to 24-Hour Calendar View"
@@ -80,8 +86,9 @@
           </svg>
         </a>
 
-        <button @click="fetchSchedule()" :disabled="loading" title="Sync Schedule"
-          class="p-2 rounded-lg bg-pink-600 hover:bg-pink-700 text-white transition shadow-2xs flex items-center justify-center">
+        <button @click="fetchSchedule()" :disabled="loading || !isOnline" :title="isOnline ? 'Sync Schedule' : 'Offline - Sync disabled'"
+          :class="!isOnline ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'bg-pink-600 hover:bg-pink-700'"
+          class="p-2 rounded-lg text-white transition shadow-2xs flex items-center justify-center">
           <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.035 8.035 0 01-15.357-2m15.357 2H15" />
@@ -145,7 +152,7 @@
         </div>
       </div>
 
-      <!-- Collapsible Body (Closed by Default) -->
+      <!-- Collapsible Body -->
       <div x-show="filtersOpen" x-collapse x-cloak class="p-3.5 sm:p-4 space-y-4 border-t border-gray-200 dark:border-gray-800">
         
         <div>
@@ -381,6 +388,7 @@
     function appData() {
       return {
         darkMode: getInitialDarkMode(),
+        isOnline: navigator.onLine,
         loading: false,
         filtersOpen: false,
         selectedDay: '13.11',
@@ -456,62 +464,48 @@
         },
 
         updateUserInterest(id, val) {
-  const key = String(id);
-  if (!this.userData[key]) {
-    this.userData[key] = { interest: '', rating: '', notes: '' };
-  }
-  // Mutate and create a new shallow copy of userData to enforce Alpine reactivity
-  this.userData[key] = {
-    ...this.userData[key],
-    interest: String(val || '')
-  };
-  this.userData = { ...this.userData };
-  this.saveUserData();
-},
-
-updateUserRating(id, val) {
-  const key = String(id);
-  if (!this.userData[key]) {
-    this.userData[key] = { interest: '', rating: '', notes: '' };
-  }
-  this.userData[key] = {
-    ...this.userData[key],
-    rating: String(val || '')
-  };
-  this.userData = { ...this.userData };
-  this.saveUserData();
-},
-
-updateUserNotes(id, val) {
-  const key = String(id);
-  if (!this.userData[key]) {
-    this.userData[key] = { interest: '', rating: '', notes: '' };
-  }
-  this.userData[key] = {
-    ...this.userData[key],
-    notes: String(val || '')
-  };
-  this.userData = { ...this.userData };
-  this.saveUserData();
-},
+          const key = String(id);
+          if (!this.userData[key]) {
+            this.userData[key] = { interest: '', rating: '', notes: '' };
+          }
+          this.userData[key] = {
+            ...this.userData[key],
+            interest: String(val || '')
+          };
+          this.userData = { ...this.userData };
+          this.saveUserData();
+        },
 
         updateUserRating(id, val) {
           const key = String(id);
-          const itemData = this.getItemUserData(key);
-          itemData.rating = String(val || '');
+          if (!this.userData[key]) {
+            this.userData[key] = { interest: '', rating: '', notes: '' };
+          }
+          this.userData[key] = {
+            ...this.userData[key],
+            rating: String(val || '')
+          };
           this.userData = { ...this.userData };
           this.saveUserData();
         },
 
         updateUserNotes(id, val) {
           const key = String(id);
-          const itemData = this.getItemUserData(key);
-          itemData.notes = String(val || '');
+          if (!this.userData[key]) {
+            this.userData[key] = { interest: '', rating: '', notes: '' };
+          }
+          this.userData[key] = {
+            ...this.userData[key],
+            notes: String(val || '')
+          };
           this.userData = { ...this.userData };
           this.saveUserData();
         },
 
         async init() {
+          window.addEventListener('online', () => this.isOnline = true);
+          window.addEventListener('offline', () => this.isOnline = false);
+
           this.$watch('darkMode', val => {
             localStorage.setItem('darkMode', val);
           });
@@ -533,10 +527,13 @@ updateUserNotes(id, val) {
             this.schedule = JSON.parse(storedSched);
           }
 
-          await this.fetchSchedule();
+          if (this.isOnline) {
+            await this.fetchSchedule();
+          }
         },
 
         fetchSchedule() {
+          if (!this.isOnline) return Promise.resolve();
           this.loading = true;
           return Promise.all([
             this.fetchSheetData('def_difficulty'),
