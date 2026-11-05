@@ -496,28 +496,44 @@
         },
 
         updateUserInterest(id, val) {
-          const key = String(id);
-          const itemData = this.getItemUserData(key);
-          itemData.interest = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
-        },
+  const key = String(id);
+  if (!this.userData[key]) {
+    this.userData[key] = { interest: '', rating: '', notes: '' };
+  }
+  // Mutate and create a new shallow copy of userData to enforce Alpine reactivity
+  this.userData[key] = {
+    ...this.userData[key],
+    interest: String(val || '')
+  };
+  this.userData = { ...this.userData };
+  this.saveUserData();
+},
 
-        updateUserRating(id, val) {
-          const key = String(id);
-          const itemData = this.getItemUserData(key);
-          itemData.rating = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
-        },
+updateUserRating(id, val) {
+  const key = String(id);
+  if (!this.userData[key]) {
+    this.userData[key] = { interest: '', rating: '', notes: '' };
+  }
+  this.userData[key] = {
+    ...this.userData[key],
+    rating: String(val || '')
+  };
+  this.userData = { ...this.userData };
+  this.saveUserData();
+},
 
-        updateUserNotes(id, val) {
-          const key = String(id);
-          const itemData = this.getItemUserData(key);
-          itemData.notes = String(val || '');
-          this.userData = { ...this.userData };
-          this.saveUserData();
-        },
+updateUserNotes(id, val) {
+  const key = String(id);
+  if (!this.userData[key]) {
+    this.userData[key] = { interest: '', rating: '', notes: '' };
+  }
+  this.userData[key] = {
+    ...this.userData[key],
+    notes: String(val || '')
+  };
+  this.userData = { ...this.userData };
+  this.saveUserData();
+},
 
         toggleInterestFilter(lvlId) {
           const key = String(lvlId);
