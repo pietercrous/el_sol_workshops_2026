@@ -1,8 +1,7 @@
-const CACHE_NAME = 'elsol-schedule-v2';
+const CACHE_NAME = 'elsol-schedule-v3';
 
-// Use relative file paths so it works regardless of repository subfolder hosting
+// Cache individual assets safely
 const ASSETS_TO_CACHE = [
-  './',
   'index.html',
   'calendar.html',
   'manifest.json',
@@ -10,16 +9,24 @@ const ASSETS_TO_CACHE = [
   'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js'
 ];
 
-// Install Event: Cache essential app shell assets
+// Install Event: Resilient Pre-caching (won't abort if a single asset fails)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      const cachePromises = ASSETS_TO_CACHE.map((asset) => {
+        const request = asset.startsWith('http')
+          ? new Request(asset, { mode: 'no-cors' })
+          : new Request(asset);
+        return cache.add(request).catch((err) => {
+          console.warn('[SW] Failed to pre-cache:', asset, err);
+        });
+      });
+      return Promise.all(cachePromises);
     }).then(() => self.skipWaiting())
   );
 });
 
-// Activate Event: Cleanup old caches
+// Activate Event: Clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -34,16 +41,15 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event: Stale-While-Revalidate Strategy
+// Fetch Event: Cache-First Strategy for App Shell & Dynamic Fallback
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // Handle Google Sheets GViz requests
+  // Handle Google Sheets GViz endpoint
   if (url.includes('docs.google.com/spreadsheets')) {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
-          // Allow opaque responses (status 0) cross-origin from Google GViz
           if (networkResponse.status === 200 || networkResponse.type === 'opaque') {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
@@ -55,22 +61,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Standard Stale-While-Revalidate for app shell and assets
+  // Standard Cache-First with Network Fallback (Ensures offline reliability)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request)
-        .then((networkResponse) => {
+      if (cachedResponse) {
+        // Return cached version immediately, update cache in background if online
+        fetch(event.request).then((networkResponse) => {
           if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
           }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Fallback gracefully when offline
-        });
+        }).catch(() => {/* Offline - ignore background refresh failure */});
 
-      return cachedResponse || fetchPromise;
+        return cachedResponse;
+      }
+
+      // If not in cache, attempt network request
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        // Return index.html as fallback for navigation requests when offline
+        if (event.request.mode === 'navigate') {
+          return caches.match('index.html');
+        }
+      });
     })
   );
 });
