@@ -184,7 +184,7 @@
               :class="selectedDifficulties.includes('0') ? 'ring-2 ring-pink-500 font-bold scale-105 shadow-2xs' : 'opacity-75 hover:opacity-100'"
               class="px-2.5 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition active:scale-95 flex items-center gap-1">
               <span x-text="selectedDifficulties.includes('0') ? '✓' : '+'"></span>
-              <span>None / Public (0)</span>
+              <span>Public</span>
             </button>
 
             <template x-for="diff in availableDifficulties" :key="diff.id">
