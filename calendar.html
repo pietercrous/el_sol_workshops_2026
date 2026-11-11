@@ -1162,7 +1162,8 @@
 
         getInterestHex(interestId) {
           const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
-          return match ? match.hex : '#6C757D';
+          //return match ? match.hex : '#6C757D';
+          return match ? match.hex : '#00000000';
         },
 
         getInterestName(interestId) {
