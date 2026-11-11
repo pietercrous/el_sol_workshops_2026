@@ -759,34 +759,44 @@
         },
 
         getEventPos(item) {
-          let startMin = null;
-          let endMin = null;
+  let startMin = null;
+  let endMin = null;
 
-          if (item.start_time) {
-            const match = String(item.start_time).match(/(\d{1,2}):(\d{2})/);
-            if (match) startMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-          }
-          if (item.end_time) {
-            const match = String(item.end_time).match(/(\d{1,2}):(\d{2})/);
-            if (match) endMin = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-          }
+  const parseTimeStr = (str) => {
+    const match = String(str).match(/(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    let h = parseInt(match[1], 10);
+    let m = parseInt(match[2], 10);
+    return h * 60 + m;
+  };
 
-          if ((startMin === null || endMin === null) && item.Time) {
-            const times = String(item.Time).match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
-            if (times) {
-              if (startMin === null) startMin = parseInt(times[1], 10) * 60 + parseInt(times[2], 10);
-              if (endMin === null) endMin = parseInt(times[3], 10) * 60 + parseInt(times[4], 10);
-            }
-          }
+  if (item.start_time) startMin = parseTimeStr(item.start_time);
+  if (item.end_time) {
+    endMin = parseTimeStr(item.end_time);
+    // If end time is midnight (00:00), treat it as 24:00 (1440 mins)
+    if (endMin === 0) endMin = 1440; 
+  }
 
-          if (startMin === null) startMin = 0;
-          if (endMin === null || endMin <= startMin) endMin = startMin + 60;
+  if ((startMin === null || endMin === null) && item.Time) {
+    const times = String(item.Time).match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+    if (times) {
+      if (startMin === null) startMin = parseInt(times[1], 10) * 60 + parseInt(times[2], 10);
+      if (endMin === null) {
+        let endH = parseInt(times[3], 10);
+        let endM = parseInt(times[4], 10);
+        endMin = (endH === 0 && endM === 0) ? 1440 : endH * 60 + endM;
+      }
+    }
+  }
 
-          const topPx = startMin;
-          const heightPx = Math.max(endMin - startMin, 35);
+  if (startMin === null) startMin = 0;
+  if (endMin === null || endMin <= startMin) endMin = startMin + 60;
 
-          return { top: topPx, height: heightPx, startMin, endMin };
-        },
+  const topPx = startMin;
+  const heightPx = Math.max(endMin - startMin, 35);
+
+  return { top: topPx, height: heightPx, startMin, endMin };
+},
 
         getWorkshopsForDateWithLayout(dateKey) {
           const items = this.getWorkshopsForDate(dateKey);
