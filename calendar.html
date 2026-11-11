@@ -190,11 +190,11 @@
             <template x-for="diff in availableDifficulties" :key="diff.id">
               <button @click="toggleDifficultyFilter(diff.id)"
                 :class="selectedDifficulties.includes(diff.id) ? 'ring-2 ring-pink-500 font-bold scale-105 shadow-2xs' : 'opacity-75 hover:opacity-100'"
-                :style="`background-color: ${diff.color || '#6C757D'}; color: #ffffff;`"
+                :style="`background-color: ${diff.color || '#6C757D'}; color: #4a5565"
                 class="px-2.5 py-1 text-xs rounded-full transition active:scale-95 flex items-center gap-1">
                 <span x-text="selectedDifficulties.includes(diff.id) ? '✓' : '+'"></span>
                 <span x-text="diff.name"></span>
-                <span x-show="diff.multiplier > 0" class="text-[10px] opacity-90" x-text="'(' + diff.multiplier + ' 👻)'"></span>
+                <span x-show="diff.multiplier > 0" class="text-[10px] opacity-90" x-text="'(' + diff.multiplier + ')'"></span>
               </button>
             </template>
 
