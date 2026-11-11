@@ -145,31 +145,86 @@
           </div>
         </div>
 
+        <!-- Multi-Select Dance Style -->
         <div>
-          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dance Style</label>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dance Style (Multi-select)</label>
           <div class="flex flex-wrap items-center gap-1.5">
-            <button @click="selectedStyle = 'All'"
-              :class="selectedStyle === 'All' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
+            <button @click="selectedStyles = []"
+              :class="selectedStyles.length === 0 ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
               class="px-3 py-1 text-xs rounded-full transition active:scale-95">All Styles</button>
             <template x-for="style in styles" :key="style">
-              <button @click="selectedStyle = style"
-                :class="selectedStyle === style ? 'ring-2 ring-pink-500 font-bold scale-105' : 'opacity-85 hover:opacity-100'"
+              <button @click="toggleStyleFilter(style)"
+                :class="selectedStyles.includes(style) ? 'ring-2 ring-pink-500 font-bold scale-105 shadow-2xs' : 'opacity-75 hover:opacity-100'"
                 :style="`background-color: ${getStyleBadgeBg(style)}; color: ${getStyleBadgeText(style)}`"
-                class="px-3 py-1 text-xs rounded-full transition active:scale-95" x-text="style"></button>
+                class="px-3 py-1 text-xs rounded-full transition active:scale-95 flex items-center gap-1">
+                <span x-text="selectedStyles.includes(style) ? '✓' : '+'"></span>
+                <span x-text="style"></span>
+              </button>
             </template>
+            <button @click="selectedStyles = []" x-show="selectedStyles.length > 0"
+              class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1 font-medium">Clear</button>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Artist / Instructor</label>
-            <select x-model="selectedFacilitator"
-              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
-              <option value="All">All Artists (A-Z)</option>
-              <template x-for="fac in alphabeticalFacilitators" :key="fac">
-                <option :value="fac" x-text="fac"></option>
-              </template>
-            </select>
+          <!-- Searchable Dependent Multi-Select Dropdown for Artists -->
+          <div class="relative" @click.outside="artistDropdownOpen = false">
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              Artist / Instructor
+              <span x-show="selectedStyles.length > 0" class="text-[10px] text-pink-600 dark:text-pink-400 font-normal">
+                (Filtered by selected style)
+              </span>
+            </label>
+
+            <!-- Custom Select Box Header -->
+            <div @click="artistDropdownOpen = !artistDropdownOpen"
+              class="w-full px-3 py-2 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer flex items-center justify-between shadow-2xs hover:bg-gray-100 dark:hover:bg-gray-750 transition">
+              <span class="truncate font-medium" x-text="artistSelectionText"></span>
+              <div class="flex items-center gap-1 shrink-0">
+                <button @click.stop="selectedFacilitators = []" x-show="selectedFacilitators.length > 0"
+                  class="text-[10px] bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded hover:bg-pink-200 transition font-bold">
+                  Clear
+                </button>
+                <span class="text-gray-400 text-xs transition-transform duration-200" :class="artistDropdownOpen ? 'rotate-180' : ''">&#9660;</span>
+              </div>
+            </div>
+
+            <!-- Dropdown Menu -->
+            <div x-show="artistDropdownOpen" x-cloak x-transition
+              class="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-800 rounded-xl shadow-xl p-2.5 space-y-2 max-h-64 overflow-hidden flex flex-col">
+              
+              <!-- Search Input inside dropdown -->
+              <div class="relative shrink-0">
+                <input type="text" x-model="artistSearchQuery" placeholder="Search instructor..."
+                  class="w-full px-2.5 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                <button x-show="artistSearchQuery.length > 0" @click="artistSearchQuery = ''"
+                  class="absolute right-2 top-1.5 text-gray-400 hover:text-gray-600 text-xs">&times;</button>
+              </div>
+
+              <!-- Action Controls -->
+              <div class="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400 px-1 border-b border-gray-100 dark:border-gray-800 pb-1.5 shrink-0">
+                <button @click="selectedFacilitators = []" class="hover:text-pink-600 dark:hover:text-pink-400 font-medium">Show All Artists</button>
+                <button @click="selectAllFilteredArtists()" class="hover:text-pink-600 dark:hover:text-pink-400 font-medium" x-show="filteredFacilitators.length > 0">Select Visible (<span x-text="filteredFacilitators.length"></span>)</button>
+              </div>
+
+              <!-- Artist Items List -->
+              <div class="overflow-y-auto space-y-1 flex-1 pr-1">
+                <template x-for="fac in filteredFacilitators" :key="fac">
+                  <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer select-none transition">
+                    <input type="checkbox" :value="fac"
+                      :checked="selectedFacilitators.includes(fac)"
+                      @change="toggleFacilitatorFilter(fac)"
+                      class="rounded text-pink-600 focus:ring-pink-500 h-3.5 w-3.5 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                    <span class="text-gray-800 dark:text-gray-200 truncate" x-text="fac"></span>
+                  </label>
+                </template>
+
+                <div x-show="filteredFacilitators.length === 0" class="text-center py-4 text-[11px] text-gray-400">
+                  No instructors found.
+                </div>
+              </div>
+
+            </div>
           </div>
 
           <div>
@@ -390,8 +445,10 @@
         loading: false,
         filtersOpen: false,
         selectedDate: '',
-        selectedStyle: 'All',
-        selectedFacilitator: 'All',
+        selectedStyles: [],
+        selectedFacilitators: [],
+        artistSearchQuery: '',
+        artistDropdownOpen: false,
         selectedInterestLevels: [],
         selectedExperienceRatings: [],
         modalOpen: false,
@@ -424,8 +481,8 @@
 
         get activeFilterCount() {
           let count = 0;
-          if (this.selectedStyle !== 'All') count++;
-          if (this.selectedFacilitator !== 'All') count++;
+          if (this.selectedStyles.length > 0) count += this.selectedStyles.length;
+          if (this.selectedFacilitators.length > 0) count += this.selectedFacilitators.length;
           if (this.selectedInterestLevels.length > 0) count += this.selectedInterestLevels.length;
           if (this.selectedExperienceRatings.length > 0) count += this.selectedExperienceRatings.length;
           return count;
@@ -504,6 +561,59 @@
           }
         },
 
+        toggleStyleFilter(style) {
+          if (this.selectedStyles.includes(style)) {
+            this.selectedStyles = this.selectedStyles.filter(s => s !== style);
+          } else {
+            this.selectedStyles.push(style);
+          }
+          // Clean up selected facilitators that are no longer available in filtered styles
+          const currentAvailable = this.dependentFacilitators;
+          this.selectedFacilitators = this.selectedFacilitators.filter(f => currentAvailable.includes(f));
+        },
+
+        get dependentFacilitators() {
+          const names = new Set();
+          this.schedule.forEach(s => {
+            const fac = s.Facilitator ? s.Facilitator.trim() : '';
+            if (fac !== '') {
+              if (this.selectedStyles.length === 0 || this.selectedStyles.includes(s.Style)) {
+                names.add(fac);
+              }
+            }
+          });
+          return Array.from(names).sort((a, b) => a.localeCompare(b));
+        },
+
+        get filteredFacilitators() {
+          const query = this.artistSearchQuery.toLowerCase().trim();
+          if (!query) return this.dependentFacilitators;
+          return this.dependentFacilitators.filter(f => f.toLowerCase().includes(query));
+        },
+
+        get artistSelectionText() {
+          if (this.selectedFacilitators.length === 0) {
+            return `All Artists (${this.dependentFacilitators.length})`;
+          }
+          if (this.selectedFacilitators.length === 1) {
+            return this.selectedFacilitators[0];
+          }
+          return `${this.selectedFacilitators.length} Artists Selected`;
+        },
+
+        toggleFacilitatorFilter(fac) {
+          if (this.selectedFacilitators.includes(fac)) {
+            this.selectedFacilitators = this.selectedFacilitators.filter(f => f !== fac);
+          } else {
+            this.selectedFacilitators.push(fac);
+          }
+        },
+
+        selectAllFilteredArtists() {
+          const newSet = new Set([...this.selectedFacilitators, ...this.filteredFacilitators]);
+          this.selectedFacilitators = Array.from(newSet);
+        },
+
         getWorkshopsForDate(dateKey) {
           const targetNormalized = this.normalizeDate(dateKey);
 
@@ -512,11 +622,11 @@
             const matchDate = (targetNormalized === 'All' || itemDateNormalized === targetNormalized);
             if (!matchDate) return false;
 
-            if (this.selectedStyle !== 'All' && item.Style !== this.selectedStyle) {
+            if (this.selectedStyles.length > 0 && !this.selectedStyles.includes(item.Style)) {
               return false;
             }
 
-            if (this.selectedFacilitator !== 'All' && item.Facilitator !== this.selectedFacilitator) {
+            if (this.selectedFacilitators.length > 0 && (!item.Facilitator || !this.selectedFacilitators.includes(item.Facilitator.trim()))) {
               return false;
             }
 
@@ -731,20 +841,11 @@
 
         resetFilters() {
           this.setDefaultDate();
-          this.selectedStyle = 'All';
-          this.selectedFacilitator = 'All';
+          this.selectedStyles = [];
+          this.selectedFacilitators = [];
+          this.artistSearchQuery = '';
           this.selectedInterestLevels = [];
           this.selectedExperienceRatings = [];
-        },
-
-        get alphabeticalFacilitators() {
-          const names = new Set();
-          this.schedule.forEach(s => {
-            if (s.Facilitator && s.Facilitator.trim() !== '') {
-              names.add(s.Facilitator.trim());
-            }
-          });
-          return Array.from(names).sort((a, b) => a.localeCompare(b));
         },
 
         async init() {
