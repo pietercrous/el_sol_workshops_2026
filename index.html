@@ -62,9 +62,9 @@
 <body
   class="bg-gray-50 text-gray-800 dark:bg-[#121212] dark:text-gray-200 min-h-screen transition-colors duration-200 font-sans antialiased">
 
-  <!-- Header -->
+  <!-- Sticky Header Top Menu Bar -->
   <header
-    class="sticky top-0 z-30 bg-white/90 dark:bg-[#181818]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-3 py-2">
+    class="sticky top-0 z-40 bg-white/90 dark:bg-[#181818]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-3 py-2">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       
       <div class="flex items-center gap-2">
@@ -77,6 +77,20 @@
       </div>
 
       <div class="flex items-center gap-1.5">
+        <!-- Filter Toggle Button in Top Header -->
+        <button @click="filtersOpen = !filtersOpen"
+          :class="filtersOpen || activeFilterCount > 0 ? 'bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 border-pink-300 dark:border-pink-800' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 border-transparent'"
+          class="px-2.5 py-1.5 rounded-lg border transition text-xs font-semibold flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <span class="hidden sm:inline">Filters</span>
+          <span x-show="activeFilterCount > 0"
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-pink-600 text-white"
+            x-text="activeFilterCount"></span>
+          <span class="text-[10px] transition-transform duration-200" :class="filtersOpen ? 'rotate-180' : ''">&#9660;</span>
+        </button>
+
         <a href="calendar.html" title="Switch to 24-Hour Calendar View"
           class="p-2 rounded-lg bg-pink-50 text-pink-700 hover:bg-pink-100 dark:bg-pink-950/60 dark:text-pink-300 dark:hover:bg-pink-900/80 transition flex items-center justify-center">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,92 +119,210 @@
       </div>
 
     </div>
-  </header>
 
-  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-    <!-- Filter Bar -->
-    <section class="mb-4 sm:mb-6 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-2xs overflow-hidden">
-      
-      <div @click="filtersOpen = !filtersOpen"
-        class="w-full px-3.5 py-2.5 bg-gray-50/90 dark:bg-gray-800/60 flex items-center justify-between cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-        <div class="flex items-center gap-2 overflow-hidden">
-          <svg class="w-4 h-4 text-pink-600 dark:text-pink-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          <span class="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider shrink-0">Filters</span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 font-semibold shrink-0"
-            x-text="activeFilterCount > 0 ? activeFilterCount + ' Active' : 'Off'"></span>
-        </div>
-
-        <div class="flex items-center gap-2 shrink-0">
-          <button @click.stop="resetFilters()" x-show="activeFilterCount > 0"
-            class="text-[11px] text-pink-600 dark:text-pink-400 hover:underline font-medium">
+    <!-- Slide-down Filter Panel linked directly from Header -->
+    <div x-show="filtersOpen" x-collapse x-cloak class="max-w-7xl mx-auto pt-3 pb-1 border-t border-gray-200 dark:border-gray-800 mt-2">
+      <div class="p-3.5 sm:p-4 bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-800 shadow-md space-y-4">
+        
+        <div class="flex items-center justify-between pb-1 border-b border-gray-100 dark:border-gray-800">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">Filter Events</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300 font-semibold"
+              x-text="activeFilterCount > 0 ? activeFilterCount + ' Active' : 'All Events Shown'"></span>
+          </div>
+          <button @click="resetFilters()" x-show="activeFilterCount > 0"
+            class="text-[11px] text-pink-600 dark:text-pink-400 hover:underline font-semibold">
             Reset All
           </button>
-          <span class="text-gray-400 text-xs transition-transform duration-200" :class="filtersOpen ? 'rotate-180' : ''">&#9660;</span>
         </div>
-      </div>
 
-      <div x-show="filtersOpen" x-collapse x-cloak class="p-3.5 sm:p-4 space-y-4 border-t border-gray-200 dark:border-gray-800">
         <div>
           <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Festival Day</label>
           <div class="flex flex-wrap items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg text-xs font-medium">
-            <template x-for="day in days" :key="day">
-              <button @click="selectedDay = day"
-                :class="selectedDay === day ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-2xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
-                class="px-3 py-1.5 rounded-md transition text-center flex-1 sm:flex-none" x-text="day"></button>
+            <template x-for="date in availableDates" :key="date">
+              <button @click="selectedDate = date"
+                :class="selectedDate === date ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-2xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+                class="px-3 py-1.5 rounded-md transition text-center flex-1 sm:flex-none" x-text="formatDateFormatted(date)"></button>
             </template>
+            <button @click="selectedDate = 'All'"
+              :class="selectedDate === 'All' ? 'bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-white shadow-2xs font-bold' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'"
+              class="px-3 py-1.5 rounded-md transition text-center flex-1 sm:flex-none">All Days</button>
           </div>
         </div>
 
+        <!-- Multi-Select Dance Style -->
         <div>
-          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dance Style</label>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Dance Style (Multi-select)</label>
           <div class="flex flex-wrap items-center gap-1.5">
-            <button @click="selectedStyle = 'All'"
-              :class="selectedStyle === 'All' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
+            <button @click="selectedStyles = []"
+              :class="selectedStyles.length === 0 ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
               class="px-3 py-1 text-xs rounded-full transition active:scale-95">All Styles</button>
             <template x-for="style in styles" :key="style">
-              <button @click="selectedStyle = style"
-                :class="selectedStyle === style ? 'ring-2 ring-pink-500 font-bold scale-105' : 'opacity-85 hover:opacity-100'"
+              <button @click="toggleStyleFilter(style)"
+                :class="selectedStyles.includes(style) ? 'ring-2 ring-pink-500 font-bold scale-105 shadow-2xs' : 'opacity-75 hover:opacity-100'"
                 :style="`background-color: ${getStyleBadgeBg(style)}; color: ${getStyleBadgeText(style)}`"
-                class="px-3 py-1 text-xs rounded-full transition active:scale-95" x-text="style"></button>
+                class="px-3 py-1 text-xs rounded-full transition active:scale-95 flex items-center gap-1">
+                <span x-text="selectedStyles.includes(style) ? '✓' : '+'"></span>
+                <span x-text="style"></span>
+              </button>
             </template>
+            <button @click="selectedStyles = []" x-show="selectedStyles.length > 0"
+              class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1 font-medium">Clear</button>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Interest Level</label>
-            <select x-model="selectedInterestFilter"
-              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
-              <option value="All">All Interest Levels</option>
-              <option value="Unselected">Unselected Only</option>
-              <template x-for="level in interestDefinitions" :key="level.id">
-                <option :value="level.id" x-text="level.name"></option>
-              </template>
-            </select>
+        <!-- Multi-Select Difficulty Level -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Difficulty Level (Multi-select)</label>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button @click="selectedDifficulties = []"
+              :class="selectedDifficulties.length === 0 ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 font-bold' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200'"
+              class="px-3 py-1 text-xs rounded-full transition active:scale-95">All Levels</button>
+
+            <!-- Zero / None Option -->
+            <button @click="toggleDifficultyFilter('0')"
+              :class="selectedDifficulties.includes('0') ? 'ring-2 ring-pink-500 font-bold scale-105 shadow-2xs' : 'opacity-75 hover:opacity-100'"
+              class="px-2.5 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition active:scale-95 flex items-center gap-1">
+              <span x-text="selectedDifficulties.includes('0') ? '✓' : '+'"></span>
+              <span>None / Public (0)</span>
+            </button>
+
+            <template x-for="diff in availableDifficulties" :key="diff.id">
+              <button @click="toggleDifficultyFilter(diff.id)"
+                :class="selectedDifficulties.includes(diff.id) ? 'ring-2 ring-pink-500 font-bold scale-105 shadow-2xs' : 'opacity-75 hover:opacity-100'"
+                :style="`background-color: ${diff.color || '#6C757D'}; color: #ffffff;`"
+                class="px-2.5 py-1 text-xs rounded-full transition active:scale-95 flex items-center gap-1">
+                <span x-text="selectedDifficulties.includes(diff.id) ? '✓' : '+'"></span>
+                <span x-text="diff.name"></span>
+                <span x-show="diff.multiplier > 0" class="text-[10px] opacity-90" x-text="'(' + diff.multiplier + ')'"></span>
+              </button>
+            </template>
+
+            <button @click="selectedDifficulties = []" x-show="selectedDifficulties.length > 0"
+              class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1 font-medium">Clear</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <!-- Searchable Dependent Multi-Select Dropdown for Artists -->
+          <div class="relative" @click.outside="artistDropdownOpen = false">
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              Artist / Instructor
+              <span x-show="selectedStyles.length > 0" class="text-[10px] text-pink-600 dark:text-pink-400 font-normal">
+                (Filtered by selected style)
+              </span>
+            </label>
+
+            <!-- Custom Select Box Header -->
+            <div @click="artistDropdownOpen = !artistDropdownOpen"
+              class="w-full px-3 py-2 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 cursor-pointer flex items-center justify-between shadow-2xs hover:bg-gray-100 dark:hover:bg-gray-750 transition">
+              <span class="truncate font-medium" x-text="artistSelectionText"></span>
+              <div class="flex items-center gap-1 shrink-0">
+                <button @click.stop="selectedFacilitators = []" x-show="selectedFacilitators.length > 0"
+                  class="text-[10px] bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded hover:bg-pink-200 transition font-bold">
+                  Clear
+                </button>
+                <span class="text-gray-400 text-xs transition-transform duration-200" :class="artistDropdownOpen ? 'rotate-180' : ''">&#9660;</span>
+              </div>
+            </div>
+
+            <!-- Dropdown Menu -->
+            <div x-show="artistDropdownOpen" x-cloak x-transition
+              class="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-800 rounded-xl shadow-xl p-2.5 space-y-2 max-h-64 overflow-hidden flex flex-col">
+              
+              <!-- Search Input inside dropdown -->
+              <div class="relative shrink-0">
+                <input type="text" x-model="artistSearchQuery" placeholder="Search instructor..."
+                  class="w-full px-2.5 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                <button x-show="artistSearchQuery.length > 0" @click="artistSearchQuery = ''"
+                  class="absolute right-2 top-1.5 text-gray-400 hover:text-gray-600 text-xs">&times;</button>
+              </div>
+
+              <!-- Action Controls -->
+              <div class="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400 px-1 border-b border-gray-100 dark:border-gray-800 pb-1.5 shrink-0">
+                <button @click="selectedFacilitators = []" class="hover:text-pink-600 dark:hover:text-pink-400 font-medium">Show All Artists</button>
+                <button @click="selectAllFilteredArtists()" class="hover:text-pink-600 dark:hover:text-pink-400 font-medium" x-show="filteredFacilitators.length > 0">Select Visible (<span x-text="filteredFacilitators.length"></span>)</button>
+              </div>
+
+              <!-- Artist Items List -->
+              <div class="overflow-y-auto space-y-1 flex-1 pr-1">
+                <template x-for="fac in filteredFacilitators" :key="fac">
+                  <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer select-none transition">
+                    <input type="checkbox" :value="fac"
+                      :checked="selectedFacilitators.includes(fac)"
+                      @change="toggleFacilitatorFilter(fac)"
+                      class="rounded text-pink-600 focus:ring-pink-500 h-3.5 w-3.5 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                    <span class="text-gray-800 dark:text-gray-200 truncate" x-text="fac"></span>
+                  </label>
+                </template>
+
+                <div x-show="filteredFacilitators.length === 0" class="text-center py-4 text-[11px] text-gray-400">
+                  No instructors found.
+                </div>
+              </div>
+
+            </div>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Artist / Instructor</label>
-            <select x-model="selectedFacilitator"
-              class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-pink-500">
-              <option value="All">All Artists (A-Z)</option>
-              <template x-for="fac in alphabeticalFacilitators" :key="fac">
-                <option :value="fac" x-text="fac"></option>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Interest Levels</label>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <!-- Unknown / Unselected Option -->
+              <button @click="toggleInterestFilter('Unselected')"
+                :class="selectedInterestLevels.includes('Unselected') ? 'ring-2 ring-offset-1 ring-pink-500 font-bold scale-105' : 'opacity-70 hover:opacity-100'"
+                style="background-color: #6C757D; color: #ffffff;"
+                class="px-2.5 py-1 rounded-full text-xs transition shadow-2xs flex items-center gap-1 active:scale-95">
+                <span x-text="selectedInterestLevels.includes('Unselected') ? '✓' : '+'"></span>
+                <span>Unknown</span>
+              </button>
+
+              <template x-for="lvl in interestDefinitions" :key="lvl.id">
+                <button @click="toggleInterestFilter(lvl.id)"
+                  :class="selectedInterestLevels.includes(String(lvl.id)) ? 'ring-2 ring-offset-1 ring-pink-500 font-bold scale-105' : 'opacity-70 hover:opacity-100'"
+                  :style="`background-color: ${lvl.hex}; color: #ffffff;`"
+                  class="px-2.5 py-1 rounded-full text-xs transition shadow-2xs flex items-center gap-1 active:scale-95">
+                  <span x-text="selectedInterestLevels.includes(String(lvl.id)) ? '✓' : '+'"></span>
+                  <span x-text="lvl.name"></span>
+                </button>
               </template>
-            </select>
+              <button @click="selectedInterestLevels = []" x-show="selectedInterestLevels.length > 0"
+                class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1">Clear</button>
+            </div>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Search Workshop</label>
-            <input type="text" x-model="searchQuery" placeholder="Search by name or artist..."
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Experience Ratings</label>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <template x-for="exp in experienceDefinitions" :key="exp.id">
+                <button @click="toggleExperienceFilter(exp.id)"
+                  :class="selectedExperienceRatings.includes(String(exp.id)) ? 'ring-2 ring-offset-1 ring-pink-500 font-bold scale-105' : 'opacity-70 hover:opacity-100'"
+                  :style="`background-color: ${exp.hex}; color: #ffffff;`"
+                  class="px-2.5 py-1 rounded-full text-xs transition shadow-2xs flex items-center gap-1 active:scale-95">
+                  <span x-text="selectedExperienceRatings.includes(String(exp.id)) ? '✓' : '+'"></span>
+                  <span x-text="exp.name"></span>
+                </button>
+              </template>
+              <button @click="selectedExperienceRatings = []" x-show="selectedExperienceRatings.length > 0"
+                class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-white ml-1">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-1">
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Search Workshops</label>
+          <div class="relative">
+            <input type="text" x-model="searchQuery" placeholder="Search by workshop name or instructor..."
               class="w-full px-3 py-1.5 text-xs rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-pink-500">
+            <button x-show="searchQuery.length > 0" @click="searchQuery = ''"
+              class="absolute right-2.5 top-1.5 text-gray-400 hover:text-gray-600 text-xs">&times;</button>
           </div>
         </div>
-      </div>
-    </section>
 
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
     <!-- Cards Grid -->
     <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
       <template x-for="item in filteredSchedule" :key="item.id">
@@ -199,7 +331,7 @@
           :style="getCardBorderStyle(item.id)">
           <div>
             <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-              <span class="font-semibold text-gray-700 dark:text-gray-300" x-text="item.Time"></span>
+              <span class="font-semibold text-gray-700 dark:text-gray-300" x-text="formatTimeDisplay(item)"></span>
               <span class="uppercase tracking-wider px-2 py-0.5 rounded text-[10px] font-medium truncate max-w-[120px]"
                 :class="darkMode ? getLocationMeta(item.Location).class_text_dark : getLocationMeta(item.Location).class_text_light"
                 :style="`background-color: ${getLocationMeta(item.Location).colour_hex || 'transparent'}`"
@@ -218,10 +350,9 @@
                 x-text="item.Style"></span>
 
               <div
-                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] justify-center font-medium"
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] justify-center font-medium shrink-0"
                 :style="`background-color: ${getDifficultyMeta(item.Difficulty).color};
-                  color: oklch(from ${getDifficultyMeta(item.Difficulty).color} calc(l - 0.35) c h);
-                  `">
+                  color: oklch(from ${getDifficultyMeta(item.Difficulty).color} calc(l - 0.35) c h);`">
                 <div class="flex items-center gap-0.5 py-0.5">
                   <template x-for="n in Number(getDifficultyMeta(item.Difficulty).multiplier)" :key="n">
                     <svg class="icon" width="14" height="14">
@@ -292,13 +423,30 @@
       <template x-if="activeItem">
         <div>
           <div class="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <span class="font-semibold" x-text="activeItem.Date + ' • ' + activeItem.Time"></span>
+            <span class="font-semibold" x-text="formatDateFormatted(activeItem.workshop_date || activeItem.Date) + ' • ' + formatTimeDisplay(activeItem)"></span>
             <span class="uppercase font-medium px-2 py-0.5 rounded text-[10px]"
               :class="darkMode ? getLocationMeta(activeItem.Location).class_text_dark : getLocationMeta(activeItem.Location).class_text_light"
               :style="`background-color: ${getLocationMeta(activeItem.Location).colour_hex || 'transparent'}`"
               x-text="getLocationMeta(activeItem.Location).name"></span>
           </div>
-          <h2 class="text-base sm:text-lg font-bold text-gray-900 dark:text-white" x-text="activeItem.Name"></h2>
+
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <h2 class="text-base sm:text-lg font-bold text-gray-900 dark:text-white" x-text="activeItem.Name"></h2>
+            
+            <div
+              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] justify-center font-medium shrink-0"
+              :style="`background-color: ${getDifficultyMeta(activeItem.Difficulty).color};
+                color: oklch(from ${getDifficultyMeta(activeItem.Difficulty).color} calc(l - 0.35) c h);`">
+              <div class="flex items-center gap-0.5 py-0.5">
+                <template x-for="n in Number(getDifficultyMeta(activeItem.Difficulty).multiplier)" :key="n">
+                  <svg class="icon" width="14" height="14">
+                    <use href="#icon-ghost"></use>
+                  </svg>
+                </template>
+              </div>
+            </div>
+          </div>
+
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-3"
             x-text="'Facilitator: ' + (activeItem.Facilitator || 'N/A')"></p>
 
@@ -366,31 +514,34 @@
         isOnline: navigator.onLine,
         loading: false,
         filtersOpen: false,
-        selectedDay: '13.11',
-        selectedStyle: 'All',
-        selectedFacilitator: 'All',
-        selectedInterestFilter: 'All',
+        selectedDate: '',
+        selectedStyles: [],
+        selectedDifficulties: [],
+        selectedFacilitators: [],
+        artistSearchQuery: '',
+        artistDropdownOpen: false,
+        selectedInterestLevels: [],
+        selectedExperienceRatings: [],
         searchQuery: '',
         modalOpen: false,
         activeItem: null,
 
-        days: ['12.11', '13.11', '14.11', '15.11'],
         styles: ['Salsa', 'Cuban', 'Bachata', 'Special', 'Salsa Romantica'],
 
         interestDefinitions: [
           { id: '1', name: '1 - Skip', hex: '#6C757D' },
-          { id: '2', name: '2 - Low', hex: '#6C757D' },
+          { id: '2', name: '2 - Low', hex: '#0D6EFD' },
           { id: '3', name: '3 - Medium', hex: '#17A2B8' },
-          { id: '4', name: '4 - High', hex: '#28A745' },
+          { id: '4', name: '4 - High', hex: '#FD7E14' },
           { id: '5', name: '5 - Must Attend', hex: '#D63384' }
         ],
 
         experienceDefinitions: [
-          { id: '1', name: '1 - Poor', hex: '#DC3545' },
-          { id: '2', name: '2 - Fair', hex: '#FD7E14' },
-          { id: '3', name: '3 - Good', hex: '#FFC107' },
-          { id: '4', name: '4 - Great', hex: '#28A745' },
-          { id: '5', name: '5 - Mindblowing', hex: '#0D6EFD' }
+          { id: '1', name: '1 - Poor', hex: '#6C757D' },
+          { id: '2', name: '2 - Fair', hex: '#0D6EFD' },
+          { id: '3', name: '3 - Good', hex: '#17A2B8' },
+          { id: '4', name: '4 - Great', hex: '#FD7E14' },
+          { id: '5', name: '5 - Mindblowing', hex: '#D63384' }
         ],
 
         difficultyDefinitions: {},
@@ -402,18 +553,239 @@
 
         get activeFilterCount() {
           let count = 0;
-          if (this.selectedStyle !== 'All') count++;
-          if (this.selectedFacilitator !== 'All') count++;
-          if (this.selectedInterestFilter !== 'All') count++;
+          if (this.selectedStyles.length > 0) count += this.selectedStyles.length;
+          if (this.selectedDifficulties.length > 0) count += this.selectedDifficulties.length;
+          if (this.selectedFacilitators.length > 0) count += this.selectedFacilitators.length;
+          if (this.selectedInterestLevels.length > 0) count += this.selectedInterestLevels.length;
+          if (this.selectedExperienceRatings.length > 0) count += this.selectedExperienceRatings.length;
           if (this.searchQuery.trim() !== '') count++;
           return count;
         },
 
+        get availableDifficulties() {
+          return Object.values(this.difficultyDefinitions);
+        },
+
+        normalizeDate(dateVal) {
+          if (!dateVal) return '';
+          const s = String(dateVal).trim();
+          if (s.includes('.')) {
+            const parts = s.split('.');
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            const year = parts[2] ? (parts[2].length === 2 ? '20' + parts[2] : parts[2]) : '2026';
+            return `${year}-${month}-${day}`;
+          }
+          if (s.includes('/')) {
+            const parts = s.split('/');
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            const year = parts[2] || '2026';
+            return `${year}-${month}-${day}`;
+          }
+          return s;
+        },
+
+        get availableDates() {
+          const dates = new Set();
+          this.schedule.forEach(item => {
+            const rawDate = item.workshop_date || item.Date;
+            if (rawDate) {
+              dates.add(this.normalizeDate(rawDate));
+            }
+          });
+          return Array.from(dates).sort();
+        },
+
+        setDefaultDate() {
+          if (!this.availableDates || this.availableDates.length === 0) {
+            this.selectedDate = 'All';
+            return;
+          }
+
+          const now = new Date();
+          const yyyy = now.getFullYear();
+          const mm = String(now.getMonth() + 1).padStart(2, '0');
+          const dd = String(now.getDate()).padStart(2, '0');
+          const isoToday = `${yyyy}-${mm}-${dd}`;
+
+          const todayMatch = this.availableDates.find(d => d === isoToday);
+
+          if (todayMatch) {
+            this.selectedDate = todayMatch;
+          } else {
+            this.selectedDate = this.availableDates[0];
+          }
+        },
+
+        toggleStyleFilter(style) {
+          if (this.selectedStyles.includes(style)) {
+            this.selectedStyles = this.selectedStyles.filter(s => s !== style);
+          } else {
+            this.selectedStyles.push(style);
+          }
+          const currentAvailable = this.dependentFacilitators;
+          this.selectedFacilitators = this.selectedFacilitators.filter(f => currentAvailable.includes(f));
+        },
+
+        toggleDifficultyFilter(diffId) {
+          const key = String(diffId);
+          if (this.selectedDifficulties.includes(key)) {
+            this.selectedDifficulties = this.selectedDifficulties.filter(d => d !== key);
+          } else {
+            this.selectedDifficulties.push(key);
+          }
+        },
+
+        get dependentFacilitators() {
+          const names = new Set();
+          this.schedule.forEach(s => {
+            const fac = s.Facilitator ? s.Facilitator.trim() : '';
+            if (fac !== '') {
+              if (this.selectedStyles.length === 0 || this.selectedStyles.includes(s.Style)) {
+                names.add(fac);
+              }
+            }
+          });
+          return Array.from(names).sort((a, b) => a.localeCompare(b));
+        },
+
+        get filteredFacilitators() {
+          const query = this.artistSearchQuery.toLowerCase().trim();
+          if (!query) return this.dependentFacilitators;
+          return this.dependentFacilitators.filter(f => f.toLowerCase().includes(query));
+        },
+
+        get artistSelectionText() {
+          if (this.selectedFacilitators.length === 0) {
+            return `All Artists (${this.dependentFacilitators.length})`;
+          }
+          if (this.selectedFacilitators.length === 1) {
+            return this.selectedFacilitators[0];
+          }
+          return `${this.selectedFacilitators.length} Artists Selected`;
+        },
+
+        toggleFacilitatorFilter(fac) {
+          if (this.selectedFacilitators.includes(fac)) {
+            this.selectedFacilitators = this.selectedFacilitators.filter(f => f !== fac);
+          } else {
+            this.selectedFacilitators.push(fac);
+          }
+        },
+
+        selectAllFilteredArtists() {
+          const newSet = new Set([...this.selectedFacilitators, ...this.filteredFacilitators]);
+          this.selectedFacilitators = Array.from(newSet);
+        },
+
+        toggleInterestFilter(lvlId) {
+          const key = String(lvlId);
+          if (this.selectedInterestLevels.includes(key)) {
+            this.selectedInterestLevels = this.selectedInterestLevels.filter(k => k !== key);
+          } else {
+            this.selectedInterestLevels.push(key);
+          }
+        },
+
+        toggleExperienceFilter(expId) {
+          const key = String(expId);
+          if (this.selectedExperienceRatings.includes(key)) {
+            this.selectedExperienceRatings = this.selectedExperienceRatings.filter(k => k !== key);
+          } else {
+            this.selectedExperienceRatings.push(key);
+          }
+        },
+
         resetFilters() {
-          this.selectedStyle = 'All';
-          this.selectedFacilitator = 'All';
-          this.selectedInterestFilter = 'All';
+          this.setDefaultDate();
+          this.selectedStyles = [];
+          this.selectedDifficulties = [];
+          this.selectedFacilitators = [];
+          this.artistSearchQuery = '';
+          this.selectedInterestLevels = [];
+          this.selectedExperienceRatings = [];
           this.searchQuery = '';
+        },
+
+        get filteredSchedule() {
+          const targetNormalized = this.normalizeDate(this.selectedDate);
+
+          return this.schedule.filter(item => {
+            const itemDateNormalized = this.normalizeDate(item.workshop_date || item.Date);
+            const matchDate = (targetNormalized === 'All' || targetNormalized === '' || itemDateNormalized === targetNormalized);
+            if (!matchDate) return false;
+
+            if (this.selectedStyles.length > 0 && !this.selectedStyles.includes(item.Style)) {
+              return false;
+            }
+
+            if (this.selectedDifficulties.length > 0) {
+              const diffMeta = this.getDifficultyMeta(item.Difficulty);
+              const diffId = String(diffMeta.id || item.Difficulty || '');
+              const mult = String(diffMeta.multiplier || 0);
+
+              const matchesDiff = this.selectedDifficulties.some(sel => {
+                if (sel === '0') return mult === '0' || !item.Difficulty;
+                return sel === diffId || sel === String(item.Difficulty);
+              });
+
+              if (!matchesDiff) return false;
+            }
+
+            if (this.selectedFacilitators.length > 0 && (!item.Facilitator || !this.selectedFacilitators.includes(item.Facilitator.trim()))) {
+              return false;
+            }
+
+            const uData = this.getItemUserData(item.id);
+
+            if (this.selectedInterestLevels.length > 0) {
+              const interestVal = uData.interest ? String(uData.interest) : '';
+              const matchesSelected = this.selectedInterestLevels.some(lvl => {
+                if (lvl === 'Unselected') return !interestVal;
+                return interestVal === lvl;
+              });
+              if (!matchesSelected) return false;
+            }
+
+            if (this.selectedExperienceRatings.length > 0) {
+              if (!uData.rating || !this.selectedExperienceRatings.includes(String(uData.rating))) {
+                return false;
+              }
+            }
+
+            if (this.searchQuery.trim() !== '') {
+              const q = this.searchQuery.toLowerCase().trim();
+              const matchName = item.Name && item.Name.toLowerCase().includes(q);
+              const matchFac = item.Facilitator && item.Facilitator.toLowerCase().includes(q);
+              if (!matchName && !matchFac) return false;
+            }
+
+            return true;
+          });
+        },
+
+        formatDateFormatted(dateVal) {
+          if (!dateVal) return '';
+          const norm = this.normalizeDate(dateVal);
+          const parts = norm.split('-');
+          if (parts.length === 3) {
+            const dayStr = parts[2];
+            const mNum = parseInt(parts[1], 10);
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthStr = monthNames[mNum - 1] || 'Nov';
+            return `${dayStr} ${monthStr}`;
+          }
+          return dateVal;
+        },
+
+        formatTimeDisplay(item) {
+          if (item.start_time && item.end_time) {
+            const start = item.start_time.substring(0, 5);
+            const end = item.end_time.substring(0, 5);
+            return `${start} - ${end}`;
+          }
+          return item.Time || '';
         },
 
         loadUserDataFromStorage() {
@@ -499,6 +871,7 @@
 
           if (storedSched) {
             this.schedule = JSON.parse(storedSched);
+            this.setDefaultDate();
           }
 
           if (this.isOnline) {
@@ -516,6 +889,7 @@
             this.fetchSheetData('def_experience_level'),
             this.fetchSheetData('schedule')
           ]).then(([diffRows, locRows, interestRows, expRows, schedRows]) => {
+
             if (diffRows && diffRows.length > 0) {
               const diffMap = {};
               diffRows.forEach(r => {
@@ -582,16 +956,20 @@
             if (schedRows && schedRows.length > 0) {
               this.schedule = schedRows.map((row, idx) => ({
                 id: String(row.id || (idx + 1)),
-                Date: String(row.Date || '13.11').trim(),
+                Date: String(row.Date || '').trim(),
                 Time: String(row.Time || '').trim(),
                 Style: String(row.Style || 'Salsa').trim(),
                 Name: String(row.Name || row['page title'] || 'Workshop').trim(),
                 Facilitator: String(row.Facilitator || '').trim(),
                 Difficulty: String(row.Difficulty || 'Public').trim(),
-                Location: String(row.Location || 'FOYER').trim()
+                Location: String(row.Location || 'FOYER').trim(),
+                workshop_date: String(row.workshop_date || '').trim(),
+                start_time: String(row.start_time || '').trim(),
+                end_time: String(row.end_time || '').trim()
               }));
 
               localStorage.setItem('elSol_schedule', JSON.stringify(this.schedule));
+              this.setDefaultDate();
             }
           }).catch(err => {
             console.error('Error fetching sheet data:', err);
@@ -696,42 +1074,9 @@
           this.activeItem = null;
         },
 
-        get alphabeticalFacilitators() {
-          const names = new Set();
-          this.schedule.forEach(s => {
-            if (s.Facilitator && s.Facilitator.trim() !== '') {
-              names.add(s.Facilitator.trim());
-            }
-          });
-          return Array.from(names).sort((a, b) => a.localeCompare(b));
-        },
-
-        get filteredSchedule() {
-          return this.schedule.filter(item => {
-            const matchesDay = !this.selectedDay || item.Date === this.selectedDay;
-            const matchesStyle = this.selectedStyle === 'All' || item.Style === this.selectedStyle;
-            const matchesFacilitator = this.selectedFacilitator === 'All' || item.Facilitator === this.selectedFacilitator;
-
-            const userInterest = this.getItemUserData(item.id).interest;
-            let matchesInterest = true;
-
-            if (this.selectedInterestFilter === 'Unselected') {
-              matchesInterest = !userInterest;
-            } else if (this.selectedInterestFilter !== 'All') {
-              matchesInterest = userInterest === String(this.selectedInterestFilter);
-            }
-
-            const matchesQuery = !this.searchQuery ||
-              item.Name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-              (item.Facilitator && item.Facilitator.toLowerCase().includes(this.searchQuery.toLowerCase()));
-
-            return matchesDay && matchesStyle && matchesFacilitator && matchesInterest && matchesQuery;
-          });
-        },
-
         getInterestHex(interestId) {
           const match = this.interestDefinitions.find(i => String(i.id) === String(interestId));
-          return match ? match.hex : '#6C757D';
+          return match ? match.hex : '#00000000';
         },
 
         getInterestName(interestId) {
